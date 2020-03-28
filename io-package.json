@@ -1,0 +1,101 @@
+{
+	"common": {
+		"name": "acceptdata",
+		"version": "0.0.1",
+		"news": {
+			"0.0.1": {
+				"en": "initial release",
+				"de": "Erstveröffentlichung",
+				"ru": "Начальная версия",
+				"pt": "lançamento inicial",
+				"nl": "Eerste uitgave",
+				"fr": "Première version",
+				"it": "Versione iniziale",
+				"es": "Versión inicial",
+				"pl": "Pierwsze wydanie",
+				"zh-cn": "首次出版"
+			}
+		},
+		"title": "Accept Data via network",
+		"titleLang": {
+			"en": "Accept Data via network",
+			"de": "Daten über das Netzwerk akzeptieren",
+			"ru": "Принять данные через сеть",
+			"pt": "Aceitar dados via rede",
+			"nl": "Accepteer gegevens via het netwerk",
+			"fr": "Accepter les données via le réseau",
+			"it": "Accetta dati tramite rete",
+			"es": "Aceptar datos a través de la red",
+			"pl": "Akceptuj dane przez sieć",
+			"zh-cn": "通过网络接受数据"
+		},
+		"desc": {
+			"en": "Accept Data can be used as a destination for devices which generate data and can post it to a device on a network in JSON or URL format",
+			"de": "Daten akzeptieren kann als Ziel für Geräte verwendet werden, die Daten generieren und diese im JSON- oder URL-Format an ein Gerät in einem Netzwerk senden",
+			"ru": "Принять данные можно использовать в качестве места назначения для устройств, которые генерируют данные и могут публиковать их на устройстве в сети в формате JSON или URL",
+			"pt": "Accept Data pode ser usado como destino para dispositivos que geram dados e pode publicá-los em um dispositivo em uma rede no formato JSON ou URL",
+			"nl": "Accepteer gegevens kan worden gebruikt als bestemming voor apparaten die gegevens genereren en deze op een apparaat in een netwerk in JSON- of URL-indeling kunnen plaatsen",
+			"fr": "Accepter les données peuvent être utilisées comme destination pour les appareils qui génèrent des données et peuvent les publier sur un appareil sur un réseau au format JSON ou URL",
+			"it": "Accetta I dati possono essere utilizzati come destinazione per i dispositivi che generano dati e possono pubblicarli su un dispositivo su una rete in formato JSON o URL",
+			"es": "Aceptar Los datos se pueden usar como destino para dispositivos que generan datos y pueden publicarlos en un dispositivo en una red en formato JSON o URL",
+			"pl": "Akceptuj Dane mogą być używane jako miejsce docelowe dla urządzeń generujących dane i mogą wysyłać je do urządzenia w sieci w formacie JSON lub URL",
+			"zh-cn": "接受数据可以用作生成数据的设备的目标，并可以将其以JSON或URL格式发布到网络上的设备"
+		},
+		"authors": [
+			"frankjoke <frankjoke@hotmail.com>"
+		],
+		"keywords": [
+			"JSON",
+			"URL",
+			"GET",
+			"POST"
+		],
+		"license": "MIT",
+		"platform": "Javascript/Node.js",
+		"main": "main.js",
+		"icon": "acceptdata.png",
+		"enabled": true,
+		"extIcon": "https://raw.githubusercontent.com/frankjoke/ioBroker.acceptdata/master/admin/acceptdata.png",
+		"readme": "https://github.com/frankjoke/ioBroker.acceptdata/blob/master/README.md",
+		"loglevel": "info",
+		"mode": "daemon",
+		"type": "communication",
+		"compact": true,
+		"connectionType": "local",
+		"dataSource": "push",
+		"materialize": true,
+		"dependencies": [
+			{
+				"js-controller": ">=1.4.2"
+			}
+		]
+	},
+	"native": {
+		"option1": true,
+		"option2": "42"
+	},
+	"objects": [],
+	"instanceObjects": [
+		{
+			"_id": "info",
+			"type": "channel",
+			"common": {
+				"name": "Information"
+			},
+			"native": {}
+		},
+		{
+			"_id": "info.connection",
+			"type": "state",
+			"common": {
+				"role": "indicator.connected",
+				"name": "Device or service connected",
+				"type": "boolean",
+				"read": true,
+				"write": false,
+				"def": false
+			},
+			"native": {}
+		}
+	]
+}
