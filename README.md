@@ -28,7 +28,7 @@ You are almost done, only a few steps left:
 	```bash
 	git push origin master
 	```
-1. Head over to [main.js](main.js) and start programming!
+1. Head over to [acceptdata.js](acceptdata.js) and start programming!
 
 ### Best Practices
 We've collected some [best practices](https://github.com/ioBroker/ioBroker.repositories#development-and-coding-best-practices) regarding ioBroker development and coding in general. If you're new to ioBroker or Node.js, you should

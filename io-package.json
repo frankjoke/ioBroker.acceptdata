@@ -52,7 +52,7 @@
 		],
 		"license": "MIT",
 		"platform": "Javascript/Node.js",
-		"main": "main.js",
+		"main": "acceptdata.js",
 		"icon": "acceptdata.png",
 		"enabled": true,
 		"extIcon": "https://raw.githubusercontent.com/frankjoke/ioBroker.acceptdata/master/admin/acceptdata.png",
@@ -71,8 +71,8 @@
 		]
 	},
 	"native": {
-		"option1": true,
-		"option2": "42"
+		"port": "3000",
+		"path": "easyweather"
 	},
 	"objects": [],
 	"instanceObjects": [

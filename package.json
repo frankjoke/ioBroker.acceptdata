@@ -49,7 +49,7 @@
     "sinon-chai": "^3.5.0",
     "sinon": "^9.0.1"
   },
-  "main": "main.js",
+  "main": "acceptdata.js",
   "scripts": {
     "test:js": "mocha --opts test/mocha.custom.opts",
     "test:package": "mocha test/package --exit",
