@@ -1,4 +1,4 @@
-![Logo](admin/acceptdata.png)
+![Logo](admin/acceptdata.png =512x512)
 # ioBroker.acceptdata
 
 [![NPM version](http://img.shields.io/npm/v/iobroker.acceptdata.svg)](https://www.npmjs.com/package/iobroker.acceptdata)
