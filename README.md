@@ -1,4 +1,3 @@
-![Logo](admin/acceptdata.png)
 <img src="admin/acceptdata.png" width="100">
 # ioBroker.acceptdata
 
