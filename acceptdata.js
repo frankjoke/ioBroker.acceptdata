@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use strict";
 
 /*
@@ -7,9 +8,121 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
+const express = require("express");
+//const bodyParser = require('body-parser')
+const {
+	inspect
+} = require("util");
+const app = express();
 
 // Load your modules here, e.g.:
 // const fs = require("fs");
+
+async function wait(num, arg) {
+	let tout = null;
+	return new Promise(res => {
+		num = num || 0;
+		tout = setTimeout(_ => {
+			if (tout) clearTimeout(tout);
+			tout = null;
+			res(arg);
+		});
+	});
+}
+
+function convert(obj, pattern) {
+	function myEval($) {
+		function toNum(v, n) {
+			const vn = Number(v);
+			if (typeof n !== "number" || n<0) return vn;
+			return Number(vn.toFixed(n));
+		}
+		// eslint-disable-next-line no-unused-vars
+		function FtoC(v, n) {
+			const vn = Number(v);
+			return toNum(( 5.0 * (vn - 32)) / 9, 1);
+		}
+		// eslint-disable-next-line no-unused-vars
+		function ItoMM(v, n) {
+			const vn = Number(v);
+			return toNum(25.4 * vn, 1);
+		}
+		// eslint-disable-next-line no-unused-vars
+		function CtoF(v, n) {
+			const vn = Number(v);
+			return toNum((vn * 9.0 + 160) / 5, 2);
+		}
+
+		let res = null;
+		try {
+			res = eval("("+pattern+")");
+		} catch(e) {
+			return {evalError: inspect(e)};
+		}
+		return res;
+	}
+	obj = obj || {};
+	if (typeof obj === "string")
+		obj = JSON.parse(obj);
+	if (! pattern)
+		return obj;
+	return myEval(obj);
+}
+
+const lastData = {};
+async function storeData(item, path) {
+	const that = this;
+	
+	async function storeItem(item, name) {
+		const types = {
+			Hum: {role: "value.humidity", type: "number", unit: "%" },
+			Kmh: {role: "value.speed", type: "number", unit: "km/h" },
+			Deg: {role: "walue.direction", type: "number", unit: "°"},
+			Date: {role: "date.start", type: "string"},
+			Hpa: {role: "value.pressure", type: "number", unit: "hPA"},
+			Mm: {role: "value.distance", type: "number", unit: "mm"},
+			Wm2: {role: "value", type: "number", unit: "W/m²"},
+			Txt: {role: "text", type: "string"},
+			C: { role: "value.temperature", type: "number", unit: "°C"},
+			V: {role: "value", type: "number"},
+		};
+		let common = {
+			role: "value",
+			read: true,
+			write: true,
+		};
+		let iname = path + (name ? "." + name : "");
+		for(const t of Object.keys(types)) 
+			if (iname.endsWith(t)) {
+				iname = iname.slice(0,iname.length - t.length);
+				common = Object.assign(common,types[t]);
+				break;
+			}
+		common.name = iname;
+		if (lastData[iname] === undefined) {
+			that.log.info("create '" + iname +"'.");
+			await that.setObjectAsync(iname, {
+				type: "state",
+				common,
+				native: {},
+			});
+			lastData[iname] = null;
+		}
+
+		if (item != lastData[iname]) {
+			lastData[iname] = item;
+			that.log.debug("update '" + iname +"' with " + inspect(item));
+			await that.setStateAsync(iname, { val: item} );
+		}
+		return wait(1);
+	}
+
+	if (typeof item !== "object")
+		return await storeItem(item);
+	for (const i of Object.keys(item))
+		await storeItem(item[i], i);
+	return Promise.resolve();
+}
 
 class Acceptdata extends utils.Adapter {
 
@@ -33,15 +146,14 @@ class Acceptdata extends utils.Adapter {
 	 */
 	async onReady() {
 		// Initialize your adapter here
-
 		// Reset the connection indicator during startup
 		this.setState("info.connection", false, true);
 
 		// The adapters config (in the instance object everything under the attribute "native") is accessible via
 		// this.config:
-		this.log.info("config option1: " + this.config.option1);
-		this.log.info("config option2: " + this.config.option2);
-
+		this.log.info("config port: " + this.config.port);
+		this.log.info("config path: " + this.config.path);
+		this.log.info("config convert: '" + this.config.convert + "'");
 		/*
 		For every state in the system there has to be also an object of type state
 		Here a simple template for a boolean variable named "testVariable"
@@ -56,6 +168,7 @@ class Acceptdata extends utils.Adapter {
 				read: true,
 				write: true,
 			},
+
 			native: {},
 		});
 
@@ -71,10 +184,17 @@ class Acceptdata extends utils.Adapter {
 
 		// same thing, but the value is flagged "ack"
 		// ack should be always set to true if the value is received from or acknowledged from the target system
-		await this.setStateAsync("testVariable", { val: true, ack: true });
+		await this.setStateAsync("testVariable", {
+			val: true,
+			ack: true
+		});
 
 		// same thing, but the state is deleted after 30s (getState will return null afterwards)
-		await this.setStateAsync("testVariable", { val: true, ack: true, expire: 30 });
+		await this.setStateAsync("testVariable", {
+			val: true,
+			ack: true,
+			expire: 30
+		});
 
 		// examples for the checkPassword/checkGroup functions
 		let result = await this.checkPasswordAsync("admin", "iobroker");
@@ -82,6 +202,58 @@ class Acceptdata extends utils.Adapter {
 
 		result = await this.checkGroupAsync("admin", "admin");
 		this.log.info("check group user admin group admin: " + result);
+
+		const port = Number(this.config.port) || 3000;
+		let path = this.config.path;
+		if (path.startsWith("/")) path = path.slice(1);
+
+		const conv = this.config.convert || "$";
+		
+		const stData = storeData.bind(this);
+
+		//app.use(bodyParser.urlencoded({ extended: true }));
+		/*
+		app.all("/*", function (req, res, next) {
+		        if (req.originalUrl == "/favicon.ico")
+		                return;
+		    console.log("all:", req._parsedUrl.pathname, inspect(req.query,{depth:2, color:true}));
+		  next() // pass control to the next handler
+		})
+		*/
+		app.get("/"+path, (request, response) => {
+			this.log.info("get data received: " + inspect(request.query, {
+				depth: 2,
+				color: true
+			}));
+			const res = convert(request.query, conv);
+			this.log.info("Converted Data: " + inspect(res, {
+				depth: 2,
+				color: true
+			}));
+			stData(res, path);
+			response.send("success");
+			//      response.send("Hello from Express!");
+		});
+
+		app.get("/*", (request, response) => {
+			this.log.debug("get unknown data received for '" + request._parsedUrl.pathname + "' with " +
+				inspect(request.query, {
+					depth: 2,
+					color: true
+				}));
+			response.send("success");
+			//      response.send("Hello from Express!");
+		});
+
+
+		app.listen(port, (err) => {
+			if (err) {
+				return this.log.error("something bad happened" + inspect(err));
+			}
+			this.setState("info.connection", true, true);
+			this.log.info(`server is listening on ${port}`);
+		});
+
 	}
 
 	/**

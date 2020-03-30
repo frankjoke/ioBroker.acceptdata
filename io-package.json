@@ -72,7 +72,16 @@
 	},
 	"native": {
 		"port": "3000",
-		"path": "easyweather"
+		"path": "easyweather",
+		"convert": "$",
+		"pathtable": [
+			{
+				"_index": 0,
+				"path": "easyweather",
+				"method": 1,
+				"enabled": true
+			}
+		]
 	},
 	"objects": [],
 	"instanceObjects": [
