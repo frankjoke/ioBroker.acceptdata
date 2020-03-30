@@ -95,13 +95,14 @@
 			</div>
 
 			<div class="col s6 input-field">
-				<input type="text" class="value" id="path" />
+				<!-- 				<input type="text" class="value" id="path" />
 				<label for="option2" class="translate">path to accept data</label>
 				<div class="translate">The external device can connect to the adapter's server using following
 					path:<br>example "http://iobroker-server:port/path?data=...</div>
+ -->
 			</div>
 		</div>
-		<div class="row">
+		<!-- 		<div class="row">
 			<div class="input-field col s12 m12 l12">
 				<textarea id="convert" class="value materialize-textarea"
 					style="height: 200px; resize: vertical;"></textarea>
@@ -111,6 +112,7 @@
 					Celsius is.</div>
 			</div>
 		</div>
+ -->
 		<div class="row">
 			<div class="input-field col s12 m12 l12">
 				<div id="pathtable" style="width: 100%; height: calc(100% - 205px)">
@@ -119,13 +121,14 @@
 						<table class="table-values" style="width: 100%;">
 							<thead>
 								<tr>
-									<th data-name="_index" style="width: 30px"
-										data-style="width: 100%; text-align: right">ID</th>
 									<th data-name="path" class="translate" style="width: 10%"
 										data-style="text-align: left">Path</th>
-<!-- 									<th data-name="room" class="translate" data-type="select">Room</th>
- -->									<th data-name="method" class="translate" data-options="1/GET;2/POST"
+									<!-- 									<th data-name="room" class="translate" data-type="select">Room</th>
+ -->
+									<th data-name="method" class="translate" data-options="1/GET;2/POST"
 										data-type="select">Method</th>
+									<th data-name="convert" data-type="text" style="width: 70%"
+										data-style="rows: 3; width: 100%; text-align: left">Conversion</th>
 									<th data-name="enabled" class="translate" data-type="checkbox" data-default="true">
 										Enabled</th>
 									<th data-buttons="delete up down copy" style="width: 32px"></th>

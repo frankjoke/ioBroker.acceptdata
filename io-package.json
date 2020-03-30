@@ -79,7 +79,8 @@
 				"_index": 0,
 				"path": "easyweather",
 				"method": 1,
-				"enabled": true
+				"enabled": false,
+				"convert": "{ outdoorTempC: FtoC($.tempf, 1), indoorTempC: FtoC($.indoortempf,1), dewPointC: FtoC($.dewptf,1), windChillC: FtoC($.windchillf,1), indoorHumidityHum: toNum($.indoorhumidity), outdoorHumidityHum: toNum($.humidity),\nwindSpeedKmh: toNum($.windspeedmph*1.61,1), windGustKmh: toNum($.windgustmph*1.61,1), windDirDeg: toNum($.winddir), lastUpdateDate: new Date($.dateutc.split(\" \").join(\"T\")+\".0Z\"),\nabsBaroHpa: toNum($.absbaromin * 33.862,0), baroHpa: toNum($.baromin * 33.862, 0), rainMm: ItoMM($.rainin), rainDailyMm: ItoMM($.dailyrainin,1), rainWeeklyMm: ItoMM($.weeklyrainin,0),\nrainMonthlyMm: ItoMM($.monthlyrainin,0), solarradiationWm2: toNum($.solarradiation,2), uvV: Number($.UV), softwareTxt: $.softwaretype\n }"
 			}
 		]
 	},

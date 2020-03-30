@@ -30,17 +30,17 @@ async function wait(num, arg) {
 	});
 }
 
-function convert(obj, pattern) {
+function convertObj(obj, pattern) {
 	function myEval($) {
 		function toNum(v, n) {
 			const vn = Number(v);
-			if (typeof n !== "number" || n<0) return vn;
+			if (typeof n !== "number" || n < 0) return vn;
 			return Number(vn.toFixed(n));
 		}
 		// eslint-disable-next-line no-unused-vars
 		function FtoC(v, n) {
 			const vn = Number(v);
-			return toNum(( 5.0 * (vn - 32)) / 9, 1);
+			return toNum((5.0 * (vn - 32)) / 9, 1);
 		}
 		// eslint-disable-next-line no-unused-vars
 		function ItoMM(v, n) {
@@ -55,16 +55,18 @@ function convert(obj, pattern) {
 
 		let res = null;
 		try {
-			res = eval("("+pattern+")");
-		} catch(e) {
-			return {evalError: inspect(e)};
+			res = eval("(" + pattern + ")");
+		} catch (e) {
+			return {
+				evalError: inspect(e)
+			};
 		}
 		return res;
 	}
 	obj = obj || {};
 	if (typeof obj === "string")
 		obj = JSON.parse(obj);
-	if (! pattern)
+	if (!pattern)
 		return obj;
 	return myEval(obj);
 }
@@ -72,19 +74,56 @@ function convert(obj, pattern) {
 const lastData = {};
 async function storeData(item, path) {
 	const that = this;
-	
+
 	async function storeItem(item, name) {
 		const types = {
-			Hum: {role: "value.humidity", type: "number", unit: "%" },
-			Kmh: {role: "value.speed", type: "number", unit: "km/h" },
-			Deg: {role: "walue.direction", type: "number", unit: "°"},
-			Date: {role: "date.start", type: "string"},
-			Hpa: {role: "value.pressure", type: "number", unit: "hPA"},
-			Mm: {role: "value.distance", type: "number", unit: "mm"},
-			Wm2: {role: "value", type: "number", unit: "W/m²"},
-			Txt: {role: "text", type: "string"},
-			C: { role: "value.temperature", type: "number", unit: "°C"},
-			V: {role: "value", type: "number"},
+			Hum: {
+				role: "value.humidity",
+				type: "number",
+				unit: "%"
+			},
+			Kmh: {
+				role: "value.speed",
+				type: "number",
+				unit: "km/h"
+			},
+			Deg: {
+				role: "walue.direction",
+				type: "number",
+				unit: "°"
+			},
+			Date: {
+				role: "date.start",
+				type: "string"
+			},
+			Hpa: {
+				role: "value.pressure",
+				type: "number",
+				unit: "hPA"
+			},
+			Mm: {
+				role: "value.distance",
+				type: "number",
+				unit: "mm"
+			},
+			Wm2: {
+				role: "value",
+				type: "number",
+				unit: "W/m²"
+			},
+			Txt: {
+				role: "text",
+				type: "string"
+			},
+			C: {
+				role: "value.temperature",
+				type: "number",
+				unit: "°C"
+			},
+			V: {
+				role: "value",
+				type: "number"
+			},
 		};
 		let common = {
 			role: "value",
@@ -92,15 +131,15 @@ async function storeData(item, path) {
 			write: true,
 		};
 		let iname = path + (name ? "." + name : "");
-		for(const t of Object.keys(types)) 
+		for (const t of Object.keys(types))
 			if (iname.endsWith(t)) {
-				iname = iname.slice(0,iname.length - t.length);
-				common = Object.assign(common,types[t]);
+				iname = iname.slice(0, iname.length - t.length);
+				common = Object.assign(common, types[t]);
 				break;
 			}
 		common.name = iname;
 		if (lastData[iname] === undefined) {
-			that.log.info("create '" + iname +"'.");
+			that.log.info("create '" + iname + "'.");
 			await that.setObjectAsync(iname, {
 				type: "state",
 				common,
@@ -111,8 +150,10 @@ async function storeData(item, path) {
 
 		if (item != lastData[iname]) {
 			lastData[iname] = item;
-			that.log.debug("update '" + iname +"' with " + inspect(item));
-			await that.setStateAsync(iname, { val: item} );
+			that.log.debug("update '" + iname + "' with " + inspect(item));
+			await that.setStateAsync(iname, {
+				val: item
+			});
 		}
 		return wait(1);
 	}
@@ -204,11 +245,7 @@ class Acceptdata extends utils.Adapter {
 		this.log.info("check group user admin group admin: " + result);
 
 		const port = Number(this.config.port) || 3000;
-		let path = this.config.path;
-		if (path.startsWith("/")) path = path.slice(1);
 
-		const conv = this.config.convert || "$";
-		
 		const stData = storeData.bind(this);
 
 		//app.use(bodyParser.urlencoded({ extended: true }));
@@ -220,20 +257,41 @@ class Acceptdata extends utils.Adapter {
 		  next() // pass control to the next handler
 		})
 		*/
-		app.get("/"+path, (request, response) => {
-			this.log.info("get data received: " + inspect(request.query, {
-				depth: 2,
-				color: true
-			}));
-			const res = convert(request.query, conv);
-			this.log.info("Converted Data: " + inspect(res, {
-				depth: 2,
-				color: true
-			}));
-			stData(res, path);
-			response.send("success");
-			//      response.send("Hello from Express!");
-		});
+
+		if (this.config.pathtable)
+			this.config.pathtable.map(i => {
+				let {
+					path,
+					method,
+					convert,
+					enabled
+				} = i;
+				if (enabled) {
+					convert = convert || "$";
+					if (path.startsWith("/")) path = path.slice(1);
+					switch (method) {
+						case "1": // get
+						default:
+							app.get("/" + path, (request, response) => {
+								this.log.debug("get data received: " + inspect(request.query, {
+									depth: 2,
+									color: true
+								}));
+								const res = convertObj(request.query, convert);
+								this.log.debug("Converted Data: " + inspect(res, {
+									depth: 2,
+									color: true
+								}));
+								stData(res, path);
+								response.send("success");
+								//      response.send("Hello from Express!");
+							});
+							break;
+						case "2": // post
+							break;
+					}
+				}
+			});
 
 		app.get("/*", (request, response) => {
 			this.log.debug("get unknown data received for '" + request._parsedUrl.pathname + "' with " +
@@ -250,7 +308,7 @@ class Acceptdata extends utils.Adapter {
 			if (err) {
 				return this.log.error("something bad happened" + inspect(err));
 			}
-			this.setState("info.connection", true, true);
+			this.setState("info.connection", {val: true, ack: true});
 			this.log.info(`server is listening on ${port}`);
 		});
 
