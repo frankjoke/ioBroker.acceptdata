@@ -70,17 +70,20 @@
 			}
 		]
 	},
-	"native": {
+	"native": "native": {
 		"port": "3000",
-		"path": "easyweather",
-		"convert": "$",
 		"pathtable": [
 			{
-				"_index": 0,
 				"path": "easyweather",
-				"method": 1,
-				"enabled": false,
-				"convert": "{ outdoorTempC: FtoC($.tempf, 1), indoorTempC: FtoC($.indoortempf,1), dewPointC: FtoC($.dewptf,1), windChillC: FtoC($.windchillf,1), indoorHumidityHum: toNum($.indoorhumidity), outdoorHumidityHum: toNum($.humidity),\nwindSpeedKmh: toNum($.windspeedmph*1.61,1), windGustKmh: toNum($.windgustmph*1.61,1), windDirDeg: toNum($.winddir), lastUpdateDate: new Date($.dateutc.split(\" \").join(\"T\")+\".0Z\"),\nabsBaroHpa: toNum($.absbaromin * 33.862,0), baroHpa: toNum($.baromin * 33.862, 0), rainMm: ItoMM($.rainin), rainDailyMm: ItoMM($.dailyrainin,1), rainWeeklyMm: ItoMM($.weeklyrainin,0),\nrainMonthlyMm: ItoMM($.monthlyrainin,0), solarradiationWm2: toNum($.solarradiation,2), uvV: Number($.UV), softwareTxt: $.softwaretype\n }"
+				"method": "1",
+				"convert": "{ outdoorTemp_C: FtoC($.tempf, 1), indoorTemp_C: FtoC($.indoortempf,1), dewPoint_C: FtoC($.dewptf,1), windChill_C: FtoC($.windchillf,1), indoorHumidity_Hum: toNum($.indoorhumidity), outdoorHumidity_Hum: toNum($.humidity), windSpeed_Kmh: toNum($.windspeed_mph*1.61,1), windGust_Kmh: toNum($.windgustmph*1.61,1), windDir_Deg: toNum($.winddir), lastUpdate_Date: new Date($.dateutc.split(\" \").join(\"T\")+\".0Z\"), absBaro_Hpa: toNum($.absbaromin * 33.862,0), baro_Hpa: toNum($.baromin * 33.862, 0), rain_Mm: ItoMM($.rainin), rainDaily_Mm: ItoMM($.dailyrainin,1), rainWeekly_Mm: ItoMM($.weeklyrainin,0), rainMonthly_Mm: ItoMM($.monthlyrainin,0), solarradiation_Wm2: toNum($.solarradiation,2), uv_V: Number($.UV), software_Txt: $.softwaretype}",
+				"enabled": false
+			},
+			{
+				"path": "Test",
+				"method": "1",
+				"convert": "$",
+				"enabled": true
 			}
 		]
 	},

@@ -128,18 +128,25 @@ async function storeData(item, path) {
 		let common = {
 			role: "value",
 			read: true,
-			write: true,
+			write: false,
 		};
 		let iname = path + (name ? "." + name : "");
-		for (const t of Object.keys(types))
-			if (iname.endsWith(t)) {
-				iname = iname.slice(0, iname.length - t.length);
-				common = Object.assign(common, types[t]);
-				break;
-			}
+		const sliced = iname.split("_");
+		const typs = (sliced.length>1) ? sliced.pop() : "Txt";
+		iname = sliced.join("_");
+		if (types[typs])
+			common = Object.assign(common, types[typs]);
+		else {
+			common.role = "value";
+			if (typs[0]=="$") {
+				common.type = "number",
+				common.unit = typs.slice(1);
+			} else common.type = typs;
+		}
+
 		common.name = iname;
 		if (lastData[iname] === undefined) {
-			that.log.info("create '" + iname + "'.");
+			that.log.debug("create '" + iname + "' with "+inspect(common));
 			await that.setObjectAsync(iname, {
 				type: "state",
 				common,
@@ -189,17 +196,15 @@ class Acceptdata extends utils.Adapter {
 		// Initialize your adapter here
 		// Reset the connection indicator during startup
 		this.setState("info.connection", false, true);
-
+		//		console.log(this);
 		// The adapters config (in the instance object everything under the attribute "native") is accessible via
 		// this.config:
 		this.log.info("config port: " + this.config.port);
-		this.log.info("config path: " + this.config.path);
-		this.log.info("config convert: '" + this.config.convert + "'");
 		/*
 		For every state in the system there has to be also an object of type state
 		Here a simple template for a boolean variable named "testVariable"
 		Because every adapter instance uses its own unique namespace variable names can't collide with other adapters variables
-		*/
+		
 		await this.setObjectAsync("testVariable", {
 			type: "state",
 			common: {
@@ -212,14 +217,14 @@ class Acceptdata extends utils.Adapter {
 
 			native: {},
 		});
-
+		*/
 		// in this template all states changes inside the adapters namespace are subscribed
 		this.subscribeStates("*");
 
 		/*
 		setState examples
 		you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)
-		*/
+		
 		// the variable testVariable is set to true as command (ack=false)
 		await this.setStateAsync("testVariable", true);
 
@@ -236,13 +241,13 @@ class Acceptdata extends utils.Adapter {
 			ack: true,
 			expire: 30
 		});
-
 		// examples for the checkPassword/checkGroup functions
 		let result = await this.checkPasswordAsync("admin", "iobroker");
 		this.log.info("check user admin pw iobroker: " + result);
 
 		result = await this.checkGroupAsync("admin", "admin");
 		this.log.info("check group user admin group admin: " + result);
+		*/
 
 		const port = Number(this.config.port) || 3000;
 
@@ -267,10 +272,12 @@ class Acceptdata extends utils.Adapter {
 					enabled
 				} = i;
 				if (enabled) {
+					method = ["GET","POST"][Number(method)-1];
 					convert = convert || "$";
 					if (path.startsWith("/")) path = path.slice(1);
+					this.log.info(`Installed path '${path}' with ${method}-method and convert: ${convert}`);
 					switch (method) {
-						case "1": // get
+						case "GET": // get
 						default:
 							app.get("/" + path, (request, response) => {
 								this.log.debug("get data received: " + inspect(request.query, {
@@ -287,7 +294,7 @@ class Acceptdata extends utils.Adapter {
 								//      response.send("Hello from Express!");
 							});
 							break;
-						case "2": // post
+						case "POST": // post
 							break;
 					}
 				}
@@ -349,8 +356,9 @@ class Acceptdata extends utils.Adapter {
 	 */
 	onStateChange(id, state) {
 		if (state) {
-			// The state was changed
-			this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
+			if (!state.from.endsWith(this.namespace))
+			// The state was changed from somebody else!
+				this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack}, from=${state.from})`);
 		} else {
 			// The state was deleted
 			this.log.info(`state ${id} deleted`);
