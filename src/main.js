@@ -6,6 +6,21 @@ import App from "./App.vue";
 //import VueChart from "@seregpie/vue-chart";
 import i18n from './i18n'
 
+import FjB from "./components/FjB";
+import FjAlerts from "./components/FjAlerts";
+import FjConfirm from "./components/FjConfirm"
+import FjFileLoadButton from "./components/FjFileLoadButton"
+import FjFileSaveButton from "./components/FjFileSaveButton"
+import VueClipboard from "vue-clipboard2";
+
+Vue.use(VueClipboard);
+Vue.component("FjB", FjB);
+Vue.component("FjAlerts", FjAlerts);
+Vue.component("FjConfirm", FjConfirm);
+Vue.component("FjFileLoadButton", FjFileLoadButton);
+Vue.component("FjFileSaveButton", FjFileSaveButton);
+
+
 Vue.config.productionTip = false;
 //Vue.component(VueChart.name, VueChart);
 /*
@@ -31,6 +46,14 @@ Vue.directive("t", {
   }
 });
 */
+
+import Sockets from "./plugins/sockets";
+
+Vue.use(Sockets, {});
+Vue.prototype.$alert = function (...args) {
+  console.log(...args);
+};
+
 new Vue({
   vuetify,
   i18n,

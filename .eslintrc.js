@@ -6,6 +6,8 @@ module.exports = {
   },
   extends: ["plugin:vue/essential", "@vue/prettier"],
   rules: {
+    endOfLine: "off",
+    "arrow-parens": "as-needed",
     "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
     "no-debugger": process.env.NODE_ENV === "production" ? "error" : "off",
   },

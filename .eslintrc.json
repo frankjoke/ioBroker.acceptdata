@@ -2,6 +2,7 @@
 	"env": {
 		"es6": true,
 		"node": true,
+		"browser": true,
 		"mocha": true
 	},
 	"extends": "eslint:recommended",
@@ -16,6 +17,7 @@
 		"no-console": "off",
 		"no-var": "error",
 		"prefer-const": "error",
+		"endOfLine":"off",
 		"quotes": [
 			"error",
 			"double",

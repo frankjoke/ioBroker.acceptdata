@@ -1,4 +1,5 @@
 process.env.VUE_APP_VERSION = require("./package.json").version;
+process.env.VUE_APP_IOBROKER = "vmraspi:8081";
 
 module.exports = {
   transpileDependencies: ["vuetify", "vue-echarts", "resize-detector"],
