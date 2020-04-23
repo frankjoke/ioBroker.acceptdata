@@ -41,7 +41,7 @@
 
 <script>
 export default {
-  name: "FjB",
+  name: "fjB",
   inheritAttrs: false,
 
   //  mixins: [attrsMixin],

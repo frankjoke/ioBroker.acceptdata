@@ -70,6 +70,118 @@
 			}
 		]
 	},
+	"configTool": [
+		{
+			"label": "Config",
+			"icon": "mdi-cog",
+			"items": [
+				{
+					"ruler": "vertical"
+				},
+				{
+					"type": "text",
+					"label": "Html",
+					"html": "Das ist<br>html",
+					"class": "pa-1",
+					"cols": 2
+				},
+				{
+					"ruler": "vertical"
+				},
+				{
+					"type": "text",
+					"label": "Text",
+					"text": "Das ist Text",
+					"sm4": true,
+					"class": "pa-1 align-self-end",
+					"style": "width='98%'",
+					"cols": 2
+				},
+				{
+					"type": "number",
+					"min": 1000,
+					"max": 65000,
+					"label": "Port",
+					"placeholder": "Enter port address on which iobroker will listen to your request",
+					"value": "port",
+					"sm3":true,
+					"prepend-icon": "mdi-home-import-outline",
+					"rules": ["numberRule"],
+					"cols": 2
+				},
+				{
+					"type": "number",
+					"min": 1000,
+					"max": 65000,
+					"label": "Port",
+					"placeholder": "Enter port address on which iobroker will listen to your request",
+					"value": "port",
+					"sm3":true,
+					"prepend-icon": "mdi-home-import-outline",
+					"rules": [" { return Number($) > 1000 || 'need to be bigger than 1000';} "],
+					"cols": 2
+				},
+				{
+					"type": "string",
+					"label": "String",
+					"placeholder": "Enter HTML...",
+					"value": "string1",
+					"prepend-icon": "mdi-home-import-outline",
+					"rules": ["($ && $.length>0) || 'String cannot be empty!'"],
+					"cols": 3
+				},
+				{
+					"ruler": "horizontal"
+				},
+				{
+					"type": "checkbox",
+					"label": "Checkbox",
+					"value": "checkbox1",
+					"cols": 3 
+				},
+				{
+					"type": "checkbox",
+					"value": "checkbox2"
+				},
+				{
+					"ruler": "spacer",
+					"type": "switch",
+					"label": "Switch",
+					"value": "checkbox1"
+				},
+				{
+					"ruler": "spacer"
+				}
+			]
+		},
+		{
+			"label": "Contact",
+			"icon": "mdi-phone",
+			"items": [
+				{
+					"type": "text",
+					"label": "Html Contact",
+					"html": "Das ist<br>html",
+					"attrs": {
+						"sm4": true,
+						"class": "pa-1"
+					}
+				},
+				{
+					"type": "vertical"
+				},
+				{
+					"type": "text",
+					"label": "Text Contact",
+					"text": "Das ist Text",
+					"attrs": {
+						"sm4": true,
+						"class": "pa-2 align-self-center"
+					}
+				}
+			]
+		}
+	],
 	"native": {
 		"port": "3000",
 		"pathtable": [

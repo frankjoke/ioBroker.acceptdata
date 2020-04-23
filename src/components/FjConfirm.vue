@@ -76,7 +76,7 @@ export default {
             i
               .trim()
               .split("=")
-              .map(j => j.trim())
+              .map((j) => j.trim())
           );
         const cmap = Object.keys(defaults).map((i) => i.toLowerCase());
         let keys;
@@ -103,11 +103,11 @@ export default {
       });
     },
     agree() {
-      this.$nextTick().then(_ => this.resolve(true));
+      this.$nextTick().then((_) => this.resolve(true));
       this.dialog = false;
     },
     cancel() {
-      this.$nextTick().then(_ => this.resolve(false));
+      this.$nextTick().then((_) => this.resolve(false));
       this.dialog = false;
     },
   },

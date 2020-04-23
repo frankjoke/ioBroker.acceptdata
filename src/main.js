@@ -6,19 +6,19 @@ import App from "./App.vue";
 //import VueChart from "@seregpie/vue-chart";
 import i18n from './i18n'
 
-import FjB from "./components/FjB";
-import FjAlerts from "./components/FjAlerts";
-import FjConfirm from "./components/FjConfirm"
-import FjFileLoadButton from "./components/FjFileLoadButton"
-import FjFileSaveButton from "./components/FjFileSaveButton"
-import VueClipboard from "vue-clipboard2";
+import fjB from "./components/fjB";
+import fjAlerts from "./components/fjAlerts";
+import fjConfirm from "./components/fjConfirm"
+import fjConfigElement from "./components/fjConfigElement"
+import fjFileLoadButton from "./components/fjFileLoadButton"
+import fjFileSaveButton from "./components/fjFileSaveButton"
 
-Vue.use(VueClipboard);
-Vue.component("FjB", FjB);
-Vue.component("FjAlerts", FjAlerts);
-Vue.component("FjConfirm", FjConfirm);
-Vue.component("FjFileLoadButton", FjFileLoadButton);
-Vue.component("FjFileSaveButton", FjFileSaveButton);
+Vue.component("fjB",fjB);
+Vue.component("fjAlerts",fjAlerts);
+Vue.component("fjConfirm",fjConfirm);
+Vue.component("fjConfigElement",fjConfigElement);
+Vue.component("fjFileLoadButton",fjFileLoadButton);
+Vue.component("fjFileSaveButton",fjFileSaveButton);
 
 
 Vue.config.productionTip = false;

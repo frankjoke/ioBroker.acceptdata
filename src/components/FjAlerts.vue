@@ -26,7 +26,7 @@
           class="ma-2"
         >
           <template v-slot:append>
-            <FjB
+            <fjB
               class="ml-2"
               small
               :right="label"
@@ -35,7 +35,7 @@
               :label="$t(label)"
               img="mdi-close"
               @click.stop="deleteAlert(index)"
-            ></FjB>
+            ></fjB>
           </template>
           <span class="body-2" v-html="$t(item.text)"></span>
         </v-alert>
@@ -49,7 +49,7 @@
 import Vue from "vue";
 
 export default {
-  name: "FjAlerts",
+  name: "fjAlerts",
   props: {
     selector: {
       type: String,
@@ -82,7 +82,7 @@ export default {
       const that = this;
       const wtime = {
         warning: 10,
-        error: 10,
+        error: 20,
         info: 5,
         success: 5,
         primary: 6,
@@ -97,7 +97,7 @@ export default {
         if (m)
           options = {
             label: "",
-            timeout: (m[1] && Number(m[1])) || wtime[m[2]],
+            timeout: m[1] ? Number(m[1]) : wtime[m[2]],
             text: m[3],
             type: m[2] || "primary",
           };

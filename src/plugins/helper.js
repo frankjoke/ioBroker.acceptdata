@@ -55,17 +55,12 @@ const helper = {
       return Promise.resolve(val);
     },
 
-    async wait(time) {
-      var timer;
-      const that = this;
-      return new Promise((res) => {
-        if (!time || time < 0 || typeof time !== "number")
-          return that.$nextTick(res);
-        timer = setTimeout((_) => {
-          timer = null;
-          return res();
-        }, time);
-      });
+    async wait(time, arg) {
+      time = Number(time) || 0;
+      if (isNaN(time) || time < 0) time = 0;
+      return await new Promise((resolve) =>
+        setTimeout(() => resolve(arg), time)
+      );
     },
 
     async pSequence(arr, promise, wait) {
@@ -73,13 +68,16 @@ const helper = {
       if (!Array.isArray(arr) && typeof arr === "object")
         arr = Object.entries(arr);
       const res = [];
-      const myPromise = (key) =>
-        this.wait(wait).then((_) =>
-          promise(key).then((r) => res[res.push(r) - 1])
-        );
-      return arr
-        .reduce((p, x) => p.then((_) => myPromise(x)), Promise.resolve())
-        .then((_) => res);
+      for (let i in arr) {
+        if (i) await this.wait(wait);
+        try {
+          const r = await promise(arr[i]);
+          res.push(r);
+        } catch (e) {
+          res.push(null);
+        }
+      }
+      return res;
     },
 
     numberFormat(val, ...args) {

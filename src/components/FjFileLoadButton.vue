@@ -1,5 +1,5 @@
 <template>
-  <FjB
+  <fjB
     v-bind="$attrs"
     :label="over ? droplabel : label"
     @click.stop="triggerLoad"
@@ -13,15 +13,20 @@
       style="display: none;"
       @change="loadTextFromFile"
     />
-  </FjB>
+  </fjB>
   <!--   </div>
   -->
 </template>
 
 <script>
-export default {
-  name: "FjFileLoadButton",
+import fjB from "./fjB.vue";
 
+export default {
+  name: "fjFileLoadButton",
+
+  components: {
+    fjB,
+  },
   //  inheritAttrs: false,
   props: {
     opts: {

@@ -1,6 +1,13 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark dense elevate-on-scroll scroll-target="#MyAppContent">
+    <v-app-bar
+      app
+      color="primary"
+      dark
+      dense
+      elevate-on-scroll
+      scroll-target="#MyAppContent"
+    >
       <div class="d-flex align-center">
         <v-img
           :alt="iobrokerAdapter"
@@ -9,7 +16,7 @@
           src="../public/acceptdata.png"
           width="35"
         />
-        <FjB
+        <fjB
           :href="iobrokerAdapterCommon.readme"
           target="_blank"
           text
@@ -19,21 +26,13 @@
         />
       </div>
       <v-tabs centered v-model="page">
-        <v-tab>
-          Tab 1
-          <v-icon right small>mdi-cog</v-icon>
-        </v-tab>
-        <v-tab>
-          Tab 2
-          <v-icon right small>mdi-phone</v-icon>
-        </v-tab>
-        <v-tab>
-          Tab 3
-          <v-icon right small>mdi-briefcase-upload</v-icon>
+        <v-tab v-for="item in configTool" v-bind:key="item.label">
+          <v-icon v-if="item.icon" small>{{ item.icon }}</v-icon>
+          <span v-t="item.label"></span>
         </v-tab>
       </v-tabs>
       <v-spacer></v-spacer>
-      <FjFileSaveButton
+      <fjFileSaveButton
         :content="iobrokerConfig"
         :opts="{ type: 'JSON', basename: iobrokerAdapter + '-config' }"
         icon
@@ -42,7 +41,7 @@
         tooltip="Download Config JSON or shift-click to copy to clipboard"
         img="mdi-briefcase-download"
       />
-      <FjFileLoadButton
+      <fjFileLoadButton
         @onchange="iobrokerConfig = arguments[0]"
         text
         icon
@@ -51,27 +50,27 @@
         img="mdi-briefcase-upload"
         message="Loaded config!"
       />
-      <FjB
+      <fjB
         text
         :disabled="!iobrokerConfigChanged"
         small
-        @click.stop="saveAdapterConfig"
+        @click.stop="saveAdapterConfig(null)"
         label="Save"
         img="mdi-content-save"
         tooltip="Save current config"
       />
-      <FjAlerts :offsetX="0" :offsetY="20" />
-      <FjB
+      <fjAlerts :offsetX="0" :offsetY="20" />
+      <fjB
         text
         small
-        @click.stop="saveAdapterConfig().then(_ => closeAdapterConfig())"
+        @click.stop="saveAdapterConfig(null).then((_) => closeAdapterConfig())"
         :disabled="!iobrokerConfigChanged"
         dense
         tooltip="Save settings and close config"
         label="Save&Close"
         img="mdi-content-save-move"
       />
-      <FjB
+      <fjB
         text
         small
         dense
@@ -83,49 +82,84 @@
     </v-app-bar>
 
     <v-content id="MyAppContent" class="flex-wrap">
-      <FjB
+      <fjB
         class="ma-1"
         label="getEnums"
-        @click="getEnums('').then(res => tmptext = JSON.stringify(res))"
+        @click="getEnums('').then((res) => setTmp(res))"
       />
-      <FjB
+      <fjB
         class="ma-1"
         label="getGroups"
-        @click="getGroups().then(res => tmptext = JSON.stringify(res))"
+        @click="getGroups().then((res) => setTmp(res))"
       />
-      <FjB
+      <fjB
         class="ma-1"
         label="getUsers"
-        @click="getUsers().then(res => tmptext = JSON.stringify(res))"
+        @click="getUsers().then((res) => setTmp(res))"
       />
-      <FjB
-        class="ma-1"
-        label="getUsers"
-        @click="getUsers().then(res => tmptext = JSON.stringify(res))"
-      />
-      <FjB
+      <fjB class="ma-1" label="config" @click="setTmp(iobrokerConfig)" />
+      <fjB class="ma-1" label="configtool" @click="setTmp(configTool)" />
+      <fjB
         class="ma-1"
         label="getExtendableInstances"
-        @click="getExtendableInstances().then(res => tmptext = JSON.stringify(res))"
+        @click="getExtendableInstances().then((res) => setTmp(res))"
       />
-      <FjB
+      <fjB
         class="ma-1"
         label="getAdapterInstances"
-        @click="getAdapterInstances().then(res => tmptext = JSON.stringify(res))"
+        @click="getAdapterInstances().then((res) => setTmp(res))"
       />
-      <FjB
+      <fjB
         class="ma-1"
         label="getState"
-        @click="getState('acceptdata.0.easyweather.outdoorTemp').then(res => tmptext = JSON.stringify(res))"
+        @click="
+          getState('acceptdata.0.easyweather.outdoorTemp').then((res) =>
+            setTmp(res)
+          )
+        "
       />
-      <FjB
+      <fjB
         class="ma-1"
         label="getObject"
-        @click="getObject('acceptdata.0.easyweather.outdoorTemp').then(res => tmptext = JSON.stringify(res))"
+        @click="
+          getObject('acceptdata.0.easyweather.outdoorTemp').then((res) =>
+            setTmp(res)
+          )
+        "
       />
-      <v-textarea class="ma-2" v-model="tmptext" auto-grow style="font-family: monospace !important; font-size: 0.9em;"/>
+      <fjB class="ma-1" label="alerttest" @click="$alert('0|error:Forever')" />
+      <v-container fluid>
+        <v-row class="px-2">
+          <fjConfigElement
+            v-for="(item, index) in configPage.items"
+            v-bind:key="index"
+            :cItem="iobrokerConfig"
+            :cToolItem="item"
+          />
+          <!--       <v-divider class="pa-1"></v-divider>
+          <v-flex align-self-center class="pa-1" sm12>
+            <v-divider></v-divider>
+          </v-flex>
+          <v-spacer></v-spacer>
+          <v-flex align-self-center class="pa-1" sm3>
+            This is my Text
+          </v-flex>
+          <v-divider vertical class="pa-1"></v-divider>
+          <v-flex align-self-center class="pa-1" sm4>
+            This is my Text<br />sölasdöflaösdföadsfm aSD asd D ASDSD<br />
+            WSWLKASDÖLKASDÖFAÖSDF
+          </v-flex>
+          <v-divider vertical></v-divider>
+          <v-flex align-self-center class="pa-1" sm4>
+            This is my Text<br />sölasdöflaösdföadsfm aSD asd D ASDSD<br />
+            WSWLKASDÖLKASDÖFAÖSDF
+          </v-flex>
+ -->
+        </v-row>
+      </v-container>
+      <code class="error--text text--darken-4" v-text="tmptext" />
     </v-content>
-    <FjConfirm />
+    <fjConfirm />
   </v-app>
 </template>
 
@@ -136,6 +170,9 @@ import helper from "./plugins/helper";
 import ioBroker from "./plugins/iobroker";
 
 const myCache = {};
+
+let what = null;
+console.log(process.env);
 /*
 function fix(number, digits, min, max) {
   min = min || Number.NEGATIVE_INFINITY;
@@ -149,7 +186,7 @@ function fix(number, digits, min, max) {
 export default {
   name: "App",
   mixins: [helper, ioBroker],
-  
+
   data: () => {
     return {
       path,
@@ -159,35 +196,14 @@ export default {
     };
   },
 
-  sockets: {
-    async connect() {
-
-      this.$alert("socket connected...");
-      this.wait(10).then(_ => this.loadIoBroker());
-    },
-
-    async disconnected() {
-      this.$alert("socket disconnected...");
-    },
-  },
-
-//  beforeMount() {},
-
-//  filters: {},
+  //  beforeMount() {},
+  //  filters: {},
 
   methods: {
-    async loadIoBroker() {
-      await this.loadSystemConfig();
-
-      this.$i18n.locale = this.iobrokerLang;
-
-      var instance = window.location.search.slice(1);
-      if (!instance) {
-        this.iobrokerInstance = this.iobrokerAdapter + ".0";
-//        console.log("beforeMount!", `instance="${this.iobrokerInstance}"`);
-      }
-      await this.getAdapterConfig();
+    setTmp(res) {
+      this.tmptext = JSON.stringify(res, null, 2);
     },
+
     /*
     remove(item) {
       this.selected.splice(this.selected.indexOf(item), 1);
@@ -213,14 +229,26 @@ export default {
 */
   },
 
-//  watch: {},
+  computed: {
+    configPage() {
+      return this.configTool[this.page];
+    },
+  },
 
-//  mounted() {},
+  //  watch: {},
 
-//  created() {},
+  mounted() {
+    if (!this.iobrokerConfigOrig && this.socketConnected) this.loadIoBroker();
+  },
+
+  //  created() {},
 };
 </script>
 <style scoped.vue>
+.v-textarea textarea {
+  line-height: 1.2rem;
+}
+
 html {
   overflow-y: auto !important;
 }

@@ -4,8 +4,12 @@ import "@mdi/font/css/materialdesignicons.min.css";
 
 import Vue from "vue";
 import Vuetify from "vuetify/lib";
-
-Vue.use(Vuetify);
+import { Ripple } from "vuetify/lib/directives";
+Vue.use(Vuetify, {
+  directives: {
+    Ripple,
+  },
+});
 
 export default new Vuetify({
   icons: {

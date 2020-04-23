@@ -1,13 +1,22 @@
 <template>
-  <FjB v-bind="$attrs" @click="saveFile(content, opts, $event)" />
+  <fjB v-bind="$attrs" @click="saveFile(content, opts, $event)" />
 </template>
 
 <script>
 import { saveAs } from "file-saver";
+import Vue from "vue";
+import VueClipboard from "vue-clipboard2";
+import fjB from "./fjB.vue";
+
+Vue.use(VueClipboard);
 
 export default {
-  name: "FjFileSaveButton",
+  name: "fjFileSaveButton",
   //  inheritAttrs: false,
+  components: {
+    fjB,
+  },
+
   props: {
     content: {
       type: Object,
@@ -22,6 +31,10 @@ export default {
   },
   computed: {},
   methods: {
+    consoleLog(...args) {
+      console.log(...args);
+    },
+
     doCopyClipboard(text) {
       const that = this;
       if (!text) return Promise.resolve();
@@ -120,7 +133,9 @@ export default {
     },
   },
   created() {
-    //    console.log(this._uid, this.iconleft, this.label, this.img)0
+    if (typeof this.$alert != "function")
+      Vue.prototype.$alert = this.consoleLog;
+    //    console.log(this._uid, this.iconleft, this.label, this.img)
   },
   mounted() {},
 };
