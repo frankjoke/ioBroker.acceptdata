@@ -3,8 +3,8 @@ import SocketIO from "socket.io-client";
 import VueSocketIO from "vue-socket.io";
 
 const options = { path: "/socket.io" }; //Options object to pass into SocketIO
-const devmode = process.env.NODE_ENV == "development";
-const server = devmode ? "ws://" + process.env.VUE_APP_IOBROKER : "/";
+const devMode = process.env.NODE_ENV !== "production";
+const server = devMode ? "ws://" + process.env.VUE_APP_IOBROKER : "/";
 //console.log(server, options);
 const socket = SocketIO(server, options);
 
@@ -70,7 +70,7 @@ const install = function (Vue, _options) {
 
 Vue.use(
   new VueSocketIO({
-    debug: devmode,
+    debug: devMode,
     connection: socket, //options object is Optional
   })
 );

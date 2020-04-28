@@ -68,6 +68,7 @@ export default {
       default: 6,
     },
   },
+
   data() {
     return {
       posx: 0,
@@ -77,16 +78,17 @@ export default {
       label: "",
     };
   },
+
   methods: {
     addAlert(options) {
       const that = this;
       const wtime = {
         warning: 10,
         error: 20,
-        info: 5,
+        info: 4,
         success: 5,
         primary: 6,
-        [undefined]: 6,
+        [undefined]: 3,
       };
       options = options || {};
       if (typeof options === "string") {
@@ -132,6 +134,7 @@ export default {
       this.items.push(options);
       return Promise.resolve(null);
     },
+
     deleteAlert(index) {
       //      console.log("Delete Item:", index, item, event);
       if (this.items[index].hastimeout) {
@@ -140,6 +143,7 @@ export default {
       }
       this.items.splice(index, 1);
     },
+
     random(start, end) {
       if (Array.isArray(start))
         return start[Math.floor(Math.random() * start.length)];
@@ -147,6 +151,7 @@ export default {
       if (typeof start === "number") return Math.random() * start;
       return Math.random();
     },
+
     resize() {
       const ref = this.$el;
       //   console.log(this.$refs, this.$refs.refgnbtn.$el);
@@ -155,12 +160,15 @@ export default {
       //      this.addAlert(`Alert resize: ${this.posx}, ${this.posy}`);
     },
   },
+
   created() {
     Vue.prototype.$alert = this.addAlert.bind(this);
   },
+
   beforeDestroy() {
     while (this.items.length > 0) this.deleteAlert(0);
   },
+
   mounted() {
     this.$nextTick((_) => this.resize());
   },

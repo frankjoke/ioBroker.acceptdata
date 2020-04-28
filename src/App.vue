@@ -20,15 +20,15 @@
           :href="iobrokerAdapterCommon.readme"
           target="_blank"
           text
-          img="mdi-help-circle"
+          img="mdi-help-circle-outline"
           :tooltip="'Goto readme for ' + iobrokerAdapter"
           :label="iobrokerAdapter + ' v(' + iobrokerPackage.version + ')'"
         />
       </div>
       <v-tabs centered v-model="page">
         <v-tab v-for="item in configTool" v-bind:key="item.label">
-          <v-icon v-if="item.icon" small>{{ item.icon }}</v-icon>
-          <span v-t="item.label"></span>
+          <v-icon v-if="item.icon" left small>{{ item.icon }}</v-icon>
+          <span v-t="item.label" />
         </v-tab>
       </v-tabs>
       <v-spacer></v-spacer>
@@ -127,6 +127,11 @@
           )
         "
       />
+      <fjB
+        class="ma-1"
+        :label="$tc('getMissing', 2)"
+        @click="setTmp($missing)"
+      />
       <fjB class="ma-1" label="alerttest" @click="$alert('0|error:Forever')" />
       <v-container fluid>
         <v-row class="px-2">
@@ -172,7 +177,7 @@ import ioBroker from "./plugins/iobroker";
 const myCache = {};
 
 let what = null;
-console.log(process.env);
+// console.log(process.env);
 /*
 function fix(number, digits, min, max) {
   min = min || Number.NEGATIVE_INFINITY;
@@ -182,7 +187,7 @@ function fix(number, digits, min, max) {
   return Number(number.toFixed(digits === undefined ? 3 : digits));
 }
 */
-// import Hello from './components/Hello';
+
 export default {
   name: "App",
   mixins: [helper, ioBroker],
@@ -245,22 +250,7 @@ export default {
 };
 </script>
 <style scoped.vue>
-.v-textarea textarea {
-  line-height: 1.2rem;
-}
-
 html {
   overflow-y: auto !important;
-}
-
-tr.alternate:nth-child(odd) {
-  background: #e3f2fd;
-}
-
-td,
-th,
-th[role="columnheader"] {
-  padding: 0 1px;
-  border-left: 1px dotted #dddddd;
 }
 </style>

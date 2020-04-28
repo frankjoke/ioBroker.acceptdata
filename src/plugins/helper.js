@@ -66,15 +66,15 @@ const helper = {
     async pSequence(arr, promise, wait) {
       wait = wait || 0;
       if (!Array.isArray(arr) && typeof arr === "object")
-        arr = Object.entries(arr);
+        arr = Object.entries(arr).filter((o) => arr.hasOwnProperty(o[0]));
       const res = [];
-      for (let i in arr) {
-        if (i) await this.wait(wait);
+      for (let i of arr) {
+        if (res.length) await this.wait(wait);
         try {
-          const r = await promise(arr[i]);
+          const r = await promise(i);
           res.push(r);
         } catch (e) {
-          res.push(null);
+          res.push(e);
         }
       }
       return res;

@@ -118,7 +118,7 @@
 					"value": "port",
 					"sm3":true,
 					"prepend-icon": "mdi-home-import-outline",
-					"rules": [" { return Number($) > 1000 || 'need to be bigger than 1000';} "],
+					"rules": ["Number($) > 1000 || 'need to be bigger than 1000'"],
 					"cols": 2
 				},
 				{
@@ -137,7 +137,18 @@
 					"type": "checkbox",
 					"label": "Checkbox",
 					"value": "checkbox1",
-					"cols": 3 
+					"cols": 2 
+				},
+				{
+					"type": "chips",
+					"label": "Chips",
+					"value": "chips1",
+					"select_O": ["aaa","bbb",3,5],
+					"delimiters": [",",";"],
+					"flat":true,
+					"hint": "please enter: old device name = new device name",
+					"rules": ["{const f = $.filter(i => i.indexOf('=')<1 || i.length <3); return !f.length ? true : `At least 3 chars and need to include an '=' after first position for ${f[0]}`;}"],
+					"cols": 6
 				},
 				{
 					"type": "checkbox",
@@ -150,8 +161,58 @@
 					"value": "checkbox1"
 				},
 				{
-					"ruler": "spacer"
+					"ruler": "line"
+				},
+				{
+					"type": "table",
+					"label": "Path Table",
+					"value": "pathtable",
+					"disable-sort": true,
+					"cols": 12,
+					"items": [
+						{
+							"text": "Path",
+							"type": "string",
+							"value": "path",
+							"align": "start",
+							"rules": ["uniqueTableRule"],
+							"sortable": true,
+							"divider": true,
+							"default": "new path",
+							"width": "19%"
+						  },
+						  {
+							"text": "Method",
+							"type": "select",
+							"select": ["GET","PUT"],
+							"value": "method",
+							"align": "center",
+							"sortable": false,
+							"divider": true,
+							"width": "8%"
+						  },
+						  {
+							"text": "Convert",
+							"value": "convert",
+							"type": "textarea",
+							"align": "start",
+							"default": "$",
+							"sortable": true,
+							"divider": true,
+							"width": "60%"
+						  },
+						  {
+							"text": "Enabled",
+							"type": "checkbox",
+							"value": "enabled",
+							"sortable": false,
+							"align": "center",
+							"divider": true,
+							"width": "5%"
+						  }
+					]
 				}
+
 			]
 		},
 		{

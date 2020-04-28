@@ -18,16 +18,19 @@
 </template>
 
 <script>
-import fjConfigItem from "./fjConfigItem.vue";
-import fjConfigRuler from "./fjConfigRuler.vue";
+import Vue from "vue";
+
+import fjConfigItem from "./fjConfigItem";
+import fjConfigRuler from "./fjConfigRuler";
+import fjConfigTable from "./fjConfigTable";
+
+Vue.component("fjConfigItem", fjConfigItem);
+Vue.component("fjConfigRuler", fjConfigRuler);
+Vue.component("fjConfigTable", fjConfigTable);
+
 
 export default {
   name: "fjConfigElement",
-
-  components: {
-    fjConfigItem,
-    fjConfigRuler,
-  },
   //  mixins: [attrsMixin],
   data() {
     return {

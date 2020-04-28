@@ -1,0 +1,178 @@
+<template>
+  <div class="pa-0 elevation-2">
+    <v-toolbar dark height="36" color="primary">
+      <v-icon left v-if="icon">{{ icon }}</v-icon>
+      <v-toolbar-title class="subtitle-2">{{ label }}</v-toolbar-title>
+      <v-spacer /><v-text-field
+        v-model="search"
+        class="body-1"
+        append-icon="mdi-magnify"
+        label="Search"
+        single-line
+        hide-details
+        dense
+      ></v-text-field
+      ><v-spacer />
+      <fjB
+        text
+        small
+        @click="addRow"
+        label="Add entry"
+        img="mdi-playlist-plus"
+      />
+    </v-toolbar>
+    <v-data-table
+      dense
+      :headers="icolumns"
+      :items="items"
+      :search="search"
+      :disableSort="disableSort"
+    >
+      <template v-slot:item="{ item, headers, index }" height="auto">
+        <tr class="alternate">
+          <td
+            v-for="column in headers"
+            :key="column.value"
+            style="padding: 0px 1px 0px 1px;"
+          >
+            <span v-if="column.value == '-'" class="d-flex justify-end">
+              <fjB
+                v-if="disableSort"
+                :disabled="!index"
+                color="primary darken-4"
+                img="mdi-transfer-up"
+                @click.stop="itemMove(index, -1)"
+                tooltip="move item one line up"
+              />
+              <fjB
+                v-if="disableSort"
+                color="primary darken-4"
+                :disabled="index >= items.length - 1"
+                img="mdi-transfer-down"
+                @click.stop="itemMove(index, +1)"
+                tooltip="move item one line down"
+              />
+              <fjB
+                img="mdi-delete-forever"
+                color="error darken-4"
+                @click.stop="itemDelete(index)"
+                tooltip="delete item"
+              />
+            </span>
+            <fjConfigItem
+              v-else
+              :cItem="item"
+              :cToolItem="column"
+              :cTable="cTable(index, column)"
+            />
+          </td>
+        </tr>
+      </template>
+    </v-data-table>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "fjConfigTable",
+
+  props: {
+    items: { type: Array, required: true },
+    columns: { type: Array, required: true },
+    label: { type: String, required: false, default: "" },
+    icon: { type: String, required: false, default: "mdi-table" },
+    disableSort: { type: Boolean, required: false, default: false },
+  },
+  data: () => ({
+    search: "",
+  }),
+  methods: {
+    async itemDelete(i) {
+      return this.$confirm(
+        `Do you really want to delete item[${i}]`
+      ).then((ret) => this.items.splice(i, 1));
+      //      this.items = this.items.slice(i.index,1);
+    },
+
+    itemMove(i, dir) {
+      const item = this.items.splice(i, 1);
+      this.items.splice(i + dir, 0, item[0]);
+      //      this.items = this.items.slice(i.index,1);
+    },
+
+    numberRule(val) {
+      const n = Number(val);
+      if (isNaN(n)) return this.$t("You can enter only a number here!");
+      if (this.cToolItem.min != undefined && n < this.cToolItem.min)
+        return this.$t("Number should not be lower than ") + this.cToolItem.min;
+      if (this.cToolItem.max != undefined && n > this.cToolItem.max)
+        return (
+          this.$t("Number should not be bigger than ") + this.cToolItem.min
+        );
+      return true;
+    },
+
+    cTable(index, column) {
+      return {
+        items: this.items,
+        index: index,
+        column: column,
+      };
+    },
+
+    addRow() {
+      let ni = {};
+      this.columns.forEach((c, index) => {
+        ni[c.value] =
+          c.default !== undefined
+            ? c.default
+            : {
+                text: "",
+                string: "",
+                textarea: "",
+                number: 0,
+                select:
+                  (c.select && c.select.find((i) => i != undefined)) || "",
+                checkbox: false,
+                chips: [],
+              }[c.type] || "";
+      });
+
+      this.items.push(ni);
+      this.snackText = "Added Row.";
+    },
+  },
+  //  watch: {},
+  computed: {
+    icolumns() {
+      return [
+        ...this.columns,
+        {
+          text: "Edit",
+          value: "-",
+          align: "center",
+          width: this.searchDisabled ? "10%" : "5%",
+        },
+      ];
+    },
+  },
+  //  created() {},
+};
+</script>
+<style>
+td,
+th,
+th[role="columnheader"] {
+  padding: 0 1px;
+  border-left: 1px dotted #dddddd;
+}
+
+tr.alternate:nth-child(even) {
+  background: #e3f2fd;
+}
+.v-text-field {
+  padding-top: 0px;
+  /*  */
+  margin-top: 4px;
+}
+</style>

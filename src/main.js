@@ -1,4 +1,3 @@
-// @ts-nocheck
 /* eslint-disable */
 import Vue from "vue";
 import vuetify from "./plugins/vuetify";
@@ -13,12 +12,12 @@ import fjConfigElement from "./components/fjConfigElement"
 import fjFileLoadButton from "./components/fjFileLoadButton"
 import fjFileSaveButton from "./components/fjFileSaveButton"
 
-Vue.component("fjB",fjB);
-Vue.component("fjAlerts",fjAlerts);
-Vue.component("fjConfirm",fjConfirm);
-Vue.component("fjConfigElement",fjConfigElement);
-Vue.component("fjFileLoadButton",fjFileLoadButton);
-Vue.component("fjFileSaveButton",fjFileSaveButton);
+Vue.component("fjB", fjB);
+Vue.component("fjAlerts", fjAlerts);
+Vue.component("fjConfirm", fjConfirm);
+Vue.component("fjConfigElement", fjConfigElement);
+Vue.component("fjFileLoadButton", fjFileLoadButton);
+Vue.component("fjFileSaveButton", fjFileSaveButton);
 
 
 Vue.config.productionTip = false;
@@ -52,6 +51,24 @@ import Sockets from "./plugins/sockets";
 Vue.use(Sockets, {});
 Vue.prototype.$alert = function (...args) {
   console.log(...args);
+};
+
+const missing = {};
+Vue.prototype.$missing = missing;
+
+i18n.missing = (lang, key, path) => {
+  //  if (i18n.te(key, i18n.fallbackLocale)) {
+  //    return i18n.t(key, i18n.fallbackLocale).toString();
+  //  }
+  //  
+  if (!missing[key] || missing[key].indexOf(lang) < 0) {
+//    console.log(`missing for lang (${lang}): '${key}'`);
+    if (missing[key])
+      missing[key].push(lang);
+    else
+      missing[key] = [lang];
+  }
+  return key; // instead of showing the key + warning
 };
 
 new Vue({

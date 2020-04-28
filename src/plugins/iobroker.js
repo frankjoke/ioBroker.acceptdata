@@ -46,6 +46,34 @@ const iobroker = {
     },
   },
 
+  watch: {
+    configTool(newV) {
+      const that = this;
+
+      function transl(o) {
+        const props = Object.getOwnPropertyNames(o);
+        if (!o._isTranslated) {
+          for (const p of props)
+            if (
+              [
+                "label",
+                "text",
+                "html",
+                "tooltip",
+                "placeholder",
+                "hint",
+              ].indexOf(p) >= 0
+            )
+              o[p] = that.$t(o[p]);
+          if (Array.isArray(o.items)) for (const i of o.items) transl(i);
+          o._isTranslated = true;
+        }
+      }
+      //      console.log("configTool", newV);
+      for (const i of newV) transl(i);
+    },
+  },
+
   methods: {
     async loadIoBroker() {
       await this.loadSystemConfig();
@@ -66,15 +94,16 @@ const iobroker = {
     },
 
     async getAdapterConfig() {
-      return this.socketEmit(
+      const res = await this.socketEmit(
         "getObject",
         "system.adapter." + this.iobrokerInstance
-      ).then((res) => {
-        this.setIobrokerConfig(res.native);
-        if (res.configTool && res.configTool.length)
-          this.configTool = res.configTool;
-        this.$alert("new config received");
-      });
+      );
+      this.setIobrokerConfig(res.native);
+      if (res.configTool && res.configTool.length)
+        this.configTool = res.configTool;
+      this.$alert("new config received");
+      await this.wait(100);
+      this.$forceUpdate();
     },
 
     async saveAdapterConfig(common) {
@@ -89,18 +118,15 @@ const iobroker = {
         }
       }
 
-      if (common) {
-        for (var b in common) {
-          if (common.hasOwnProperty(b)) {
-            oldObj.common[b] = common[b];
-          }
-        }
-      }
+      if (common)
+        for (var b in Object.getOwnPropertyNames(common))
+          oldObj.common[b] = common[b];
 
+      /* 
       if (this.configTool.length) {
         oldObj.configTool = [...this.configTool];
       }
-
+ */
       await this.socketEmit("setObject", id, oldObj).then(
         (_) => this.$alert("config saved"),
         (e) => this.$alert("error:Save config error " + e)
