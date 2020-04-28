@@ -1,6 +1,6 @@
 {
   "name": "iobroker.acceptdata",
-  "version": "0.0.1",
+  "version": "0.2.1",
   "description": "Accept Data can be used as a destination for devices which generate data and can post it to a device on a network in JSON or URL format",
   "author": {
     "name": "frankjoke",
