@@ -205,8 +205,13 @@ export default {
   //  filters: {},
 
   methods: {
-    setTmp(res) {
-      this.tmptext = JSON.stringify(res, null, 2);
+    setTmp(res, add) {
+      const newT =
+        typeof res == "number" || typeof res == "string"
+          ? res
+          : JSON.stringify(res, null, 2);
+      if (add) this.tmptext += "\n" + newT;
+      else this.tmptext = "" + newT;
     },
 
     /*
@@ -242,8 +247,17 @@ export default {
 
   //  watch: {},
 
-  mounted() {
+  async mounted() {
     if (!this.iobrokerConfigOrig && this.socketConnected) this.loadIoBroker();
+    this.setTmp(this.brEnv, true);
+    this.setTmp("iobrokerInstance: " + this.iobrokerInstance, true);
+    this.setTmp(
+      "iobrokerAdapterInstance: " + this.iobrokerAdapterInstance,
+      true
+    );
+    const host = await this.getHost();
+    this.setTmp("Host", true);
+    this.setTmp(host, true);
   },
 
   //  created() {},

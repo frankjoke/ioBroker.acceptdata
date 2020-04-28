@@ -79,92 +79,41 @@
 			"icon": "mdi-cog",
 			"items": [
 				{
-					"ruler": "vertical"
-				},
-				{
-					"type": "text",
-					"label": "Html",
-					"html": "Das ist<br>html",
-					"class": "pa-1",
-					"cols": 2
-				},
-				{
-					"ruler": "vertical"
-				},
-				{
-					"type": "text",
-					"label": "Text",
-					"text": "Das ist Text",
-					"sm4": true,
-					"class": "pa-1 align-self-end",
-					"style": "width='98%'",
-					"cols": 2
-				},
-				{
 					"type": "number",
 					"min": 1000,
 					"max": 65000,
 					"label": "Port",
 					"placeholder": "Enter port address on which iobroker will listen to your request",
+					"hint": "Port to listen on >1000 & <65000",
 					"value": "port",
 					"sm3":true,
 					"prepend-icon": "mdi-home-import-outline",
 					"rules": ["numberRule"],
-					"cols": 2
-				},
-				{
-					"type": "number",
-					"min": 1000,
-					"max": 65000,
-					"label": "Port",
-					"placeholder": "Enter port address on which iobroker will listen to your request",
-					"value": "port",
-					"sm3":true,
-					"prepend-icon": "mdi-home-import-outline",
-					"rules": ["Number($) > 1000 || 'need to be bigger than 1000'"],
-					"cols": 2
-				},
-				{
-					"type": "string",
-					"label": "String",
-					"placeholder": "Enter HTML...",
-					"value": "string1",
-					"prepend-icon": "mdi-home-import-outline",
-					"rules": ["($ && $.length>0) || 'String cannot be empty!'"],
 					"cols": 3
 				},
 				{
-					"ruler": "horizontal"
+					"type": "text",
+					"label": "For Path field:",
+					"html": "The external device can connect to the adapter's server using following path: example `http://iobroker-server:port/<strong>path</strong>?data=...`",
+					"style": "width='98%'",
+					"cols": 9
 				},
 				{
-					"type": "checkbox",
-					"label": "Checkbox",
-					"value": "checkbox1",
-					"cols": 2 
+					"type": "text",
+					"label": "For Method field:",
+					"html": "Either <strong>GET</strong> or <strong>PUT</strong> is supported.<br>By entering the below URL in your browser (changing iobroker-server to your server name or ip) you can test the 'Test' entry.<a target='_blank' href='http://localhost:3000/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://localhost:3000/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>",
+					"style": "width='98%'",
+					"cols": 3
 				},
 				{
-					"type": "chips",
-					"label": "Chips",
-					"value": "chips1",
-					"select_O": ["aaa","bbb",3,5],
-					"delimiters": [",",";"],
-					"flat":true,
-					"hint": "please enter: old device name = new device name",
-					"rules": ["{const f = $.filter(i => i.indexOf('=')<1 || i.length <3); return !f.length ? true : `At least 3 chars and need to include an '=' after first position for ${f[0]}`;}"],
-					"cols": 6
+					"type": "text",
+					"label": "For Convert field:",
+					"html": "Conversion receives data as variable $ and can convert it to some new format which will then be stored in state(s) named with path.<br>example: '{ tempC: FtoC($.tempf, 1) }' where FtoC an internal conversion for Farenheit to Celsius is.<br>Other functions are <code>toNum(str, digits_after_comma), CtoF(..) and ItoMM(...)</code><br>The field names can end with '_' and type/unit information. The text after the '_' will be the type like with '_date', or if type should be number with specific unit you can name it '_$km/h'. There are some predefined types available as well which can be named directly (without $): <strong>'Hum', 'Kmh', 'Deg', 'Date', 'Hpa', 'Mm', 'Wm2', 'Txt', 'C', 'V'</strong> where V is just a number Value, the many of the other set also roles.",
+					"style": "width='98%'",
+					"cols": 9
 				},
 				{
-					"type": "checkbox",
-					"value": "checkbox2"
-				},
-				{
-					"ruler": "spacer",
-					"type": "switch",
-					"label": "Switch",
-					"value": "checkbox1"
-				},
-				{
-					"ruler": "line"
+					"ruler": "hr"
 				},
 				{
 					"type": "table",
@@ -223,6 +172,54 @@
 			"icon": "mdi-phone",
 			"items": [
 				{
+					"typer": "text",
+					"label": "For Path field:",
+					"html": "The external device can connect to the adapter's server using following path: example `http://iobroker-server:port/<strong>path</strong>?data=...`",
+					"sm4": true,
+					"class": "pa-1 align-self-end",
+					"style": "width='98%'",
+					"cols": 2
+				},
+				{
+					"type": "string",
+					"label": "String",
+					"placeholder": "Enter HTML...",
+					"value": "string1",
+					"prepend-icon": "mdi-home-import-outline",
+					"rules": ["($ && $.length>0) || 'String cannot be empty!'"],
+					"cols": 3
+				},
+				{
+					"ruler": "horizontal"
+				},
+				{
+					"type": "checkbox",
+					"label": "Checkbox",
+					"value": "checkbox1",
+					"cols": 2 
+				},
+				{
+					"type": "chips",
+					"label": "Chips",
+					"value": "chips1",
+					"select_O": ["aaa","bbb",3,5],
+					"delimiters": [",",";"],
+					"flat":true,
+					"hint": "please enter: old device name = new device name",
+					"rules": ["{const f = $.filter(i => i.indexOf('=')<1 || i.length <3); return !f.length ? true : `At least 3 chars and need to include an '=' after first position for ${f[0]}`;}"],
+					"cols": 6
+				},
+				{
+					"type": "checkbox",
+					"value": "checkbox2"
+				},
+				{
+					"ruler": "spacer",
+					"type": "switch",
+					"label": "Switch",
+					"value": "checkbox1"
+				},
+				{
 					"type": "text",
 					"label": "Html Contact",
 					"html": "Das ist<br>html",
@@ -253,7 +250,7 @@
 				"path": "easyweather",
 				"method": "1",
 				"convert": "{ outdoorTemp_C: FtoC($.tempf, 1), indoorTemp_C: FtoC($.indoortempf,1), dewPoint_C: FtoC($.dewptf,1), windChill_C: FtoC($.windchillf,1), indoorHumidity_Hum: toNum($.indoorhumidity), outdoorHumidity_Hum: toNum($.humidity), windSpeed_Kmh: toNum($.windspeed_mph*1.61,1), windGust_Kmh: toNum($.windgustmph*1.61,1), windDir_Deg: toNum($.winddir), lastUpdate_Date: new Date($.dateutc.split(\" \").join(\"T\")+\".0Z\"), absBaro_Hpa: toNum($.absbaromin * 33.862,0), baro_Hpa: toNum($.baromin * 33.862, 0), rain_Mm: ItoMM($.rainin), rainDaily_Mm: ItoMM($.dailyrainin,1), rainWeekly_Mm: ItoMM($.weeklyrainin,0), rainMonthly_Mm: ItoMM($.monthlyrainin,0), solarradiation_Wm2: toNum($.solarradiation,2), uv_V: Number($.UV), software_Txt: $.softwaretype}",
-				"enabled": false
+				"enabled": true
 			},
 			{
 				"path": "Test",
