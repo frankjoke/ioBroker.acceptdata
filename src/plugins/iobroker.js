@@ -7,7 +7,7 @@ import iopackage from "../../io-package.json";
 // var parts = path.split("/");
 // parts.splice(-3);
 // var instance = window.location.search;
-
+const devMode = process.env.NODE_ENV !== "production";
 
 //console.log(process.env);
 const mylang = (navigator.language || navigator.userLanguage).slice(0, 2);
@@ -28,6 +28,7 @@ const iobroker = {
       ioBrokerCerts: [],
       socketConnected: false,
       configTool: [],
+      devMode,
     };
   },
   sockets: {
@@ -89,7 +90,7 @@ const iobroker = {
         }
       }
       for (const i of newV)
-        if (!i._isTranslated) {
+        if (!i._isTranslated && (!devMode && !i.devOnly)) {
           transl(i);
           i._isTranslated = true;
         }
@@ -101,12 +102,6 @@ const iobroker = {
 
   methods: {
     async loadIoBroker() {
-      this.setTmp("iobrokerInstance: " + this.iobrokerInstance, true);
-      this.setTmp(
-        "iobrokerAdapterInstance: " + this.iobrokerAdapterInstance,
-        true
-      );
-
       await this.loadSystemConfig();
 
       this.$i18n.locale = this.iobrokerLang;

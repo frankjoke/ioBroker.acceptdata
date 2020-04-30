@@ -4,6 +4,7 @@ import VueSocketIO from "vue-socket.io";
 
 const options = { path: "/socket.io" }; //Options object to pass into SocketIO
 const devMode = process.env.NODE_ENV !== "production";
+
 const server = devMode ? "ws://" + process.env.VUE_APP_IOBROKER : "/";
 //console.log(server, options);
 const socket = SocketIO(server, options);

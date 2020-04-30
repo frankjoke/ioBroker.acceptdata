@@ -73,360 +73,214 @@
 			}
 		]
 	},
-	"configTool": [
-		{
-			"label": "Config",
-			"icon": "mdi-cog",
-			"items": [
-				{
-					"type": "number",
-					"min": 1000,
-					"max": 65000,
-					"label": "Port",
-					"placeholder": "Enter port address on which iobroker will listen to your request",
-					"hint": "Port to listen on >1000 & <65000",
-					"value": "port",
-					"sm3":true,
-					"prepend-icon": "mdi-home-import-outline",
-					"rules": ["numberRule"],
-					"cols": 3
-				},
-				{
-					"type": "html",
-					"label": "For Path field:",
-					"text": [
-						"The external device can connect to the adapter's server using following example:",
-						"<code>http://iobroker-server:port/<strong>path</strong>?data=...</code>"],
-					"style": "width='98%'",
-					"cols": 9
-				},
-				{
-					"type": "html",
-					"label": "For Method field:",
-					"text": [
-						"Either <code>GET</code> or <code>POST</code> is supported.",
-						"By entering the below URL in your browser (changing iobroker-server to your server name or ip) you can test the 'Test' entry:" ,
-						"<a target='_blank' href='http://localhost:3000/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://localhost:3000/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>"],
-					"style": "width='98%'",
-					"eval": "$.text[2] = $.text[2].replace('localhost:',that.iobrokerHostConnection.hostname + ':')",
-					"cols": 3
-				},
-				{
-					"type": "text",
-					"label": "For Convert field:",
-					"html": "Conversion receives data as variable $ and can convert it to some new format which will then be stored in state(s) named with path.<br>example: '{ tempC: FtoC($.tempf, 1) }' where FtoC an internal conversion for Farenheit to Celsius is.<br>Other functions are <code>toNum(str, digits_after_comma), CtoF(..) and ItoMM(...)</code><br>The field names can end with '_' and type/unit information. The text after the '_' will be the type like with '_date', or if type should be number with specific unit you can name it '_$km/h'. There are some predefined types available as well which can be named directly (without $): <strong>'Hum', 'Kmh', 'Deg', 'Date', 'Hpa', 'Mm', 'Wm2', 'Txt', 'C', 'V'</strong> where V is just a number Value, the many of the other set also roles.",
-					"style": "width='98%'",
-					"cols": 9
-				},
-				{
-					"ruler": "hr"
-				},
-				{
-					"type": "table",
-					"label": "Path Table",
-					"value": "pathtable",
-					"disable-sort": true,
-					"cols": 12,
-					"items": [
-						{
-							"text": "Path",
-							"type": "string",
-							"value": "path",
-							"align": "start",
-							"rules": ["uniqueTableRule"],
-							"sortable": true,
-							"divider": true,
-							"default": "new path",
-							"width": "19%"
-						  },
-						  {
-							"text": "Method",
-							"type": "select",
-							"select": ["GET","POST"],
-							"value": "method",
-							"align": "center",
-							"sortable": false,
-							"divider": true,
-							"width": "8%"
-						  },
-						  {
-							"text": "Convert",
-							"value": "convert",
-							"type": "textarea",
-							"align": "start",
-							"default": "$",
-							"sortable": true,
-							"divider": true,
-							"width": "60%"
-						  },
-						  {
-							"text": "Enabled",
-							"type": "checkbox",
-							"value": "enabled",
-							"sortable": false,
-							"align": "center",
-							"divider": true,
-							"width": "5%"
-						  }
-					]
-				}
-
-			]
-		},
-		{
-			"label": "Contact",
-			"icon": "mdi-phone",
-			"items": [
-				{
-					"typer": "text",
-					"label": "For Path field:",
-					"html": "The external device can connect to the adapter's server using following path: example `http://iobroker-server:port/<strong>path</strong>?data=...`",
-					"sm4": true,
-					"class": "pa-1 align-self-end",
-					"style": "width='98%'",
-					"cols": 2
-				},
-				{
-					"type": "string",
-					"label": "String",
-					"placeholder": "Enter HTML...",
-					"value": "string1",
-					"prepend-icon": "mdi-home-import-outline",
-					"rules": ["($ && $.length>0) || 'String cannot be empty!'"],
-					"cols": 3
-				},
-				{
-					"ruler": "horizontal"
-				},
-				{
-					"type": "checkbox",
-					"label": "Checkbox",
-					"value": "checkbox1",
-					"cols": 2 
-				},
-				{
-					"type": "chips",
-					"label": "Chips",
-					"value": "chips1",
-					"select_O": ["aaa","bbb",3,5],
-					"delimiters": [",",";"],
-					"flat":true,
-					"hint": "please enter: old device name = new device name",
-					"rules": ["{const f = $.filter(i => i.indexOf('=')<1 || i.length <3); return !f.length ? true : `At least 3 chars and need to include an '=' after first position for ${f[0]}`;}"],
-					"cols": 6
-				},
-				{
-					"type": "checkbox",
-					"value": "checkbox2"
-				},
-				{
-					"ruler": "spacer",
-					"type": "switch",
-					"label": "Switch",
-					"value": "checkbox1"
-				},
-				{
-					"type": "text",
-					"label": "Html Contact",
-					"html": "Das ist<br>html",
-					"attrs": {
-						"sm4": true,
-						"class": "pa-1"
-					}
-				},
-				{
-					"type": "vertical"
-				},
-				{
-					"type": "text",
-					"label": "Text Contact",
-					"text": "Das ist Text",
-					"attrs": {
-						"sm4": true,
-						"class": "pa-2 align-self-center"
-					}
-				}
-			]
-		}
-	],
 	"native": {
 		"_configTool": [
 			{
-				"label": "Config",
-				"icon": "mdi-cog",
-				"items": [
+			  "label": "Config",
+			  "icon": "mdi-cog",
+			  "items": [
+				{
+				  "type": "number",
+				  "min": 1000,
+				  "max": 65000,
+				  "label": "Port",
+				  "placeholder": "Enter port address on which iobroker will listen to your request",
+				  "hint": "Port to listen on >1000 & <65000",
+				  "value": "port",
+				  "sm3": true,
+				  "prepend-icon": "mdi-home-import-outline",
+				  "rules": [
+					"numberRule"
+				  ],
+				  "cols": 4
+				},
+				{
+				  "type": "html",
+				  "label": "For Method field:",
+				  "text": [
+					"Either <code>GET</code> or <code>POST</code> is supported.",
+					"By entering the below URL in your browser (changing iobroker-server to your server name or ip) you can test the 'Test' entry:",
+					"<a target='_blank' href='http://localhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://localhost:3000/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>"
+				  ],
+				  "style": "width='98%'",
+				  "eval": "{for (i in $.text) $.text[i] = $.text[i].replace(/localhost:/g,this.iobrokerHostConnection ? this.iobrokerHostConnection.hostname + ':' : 'my-iobroker-host:').replace(':port/',`:${this.iobrokerConfig.port}/`)}",
+				  "cols": 8
+				},
+				{
+				  "type": "html",
+				  "label": "For Path field:",
+				  "text": [
+					"The external device can connect to the adapter's server using following example:",
+					"`http://localhost:port/<code>path</code>?data=...`"
+				  ],
+				  "style": "width='98%'",
+				  "eval": "{for (i in $.text) $.text[i] = $.text[i].replace(/localhost:/g,this.iobrokerHostConnection ? this.iobrokerHostConnection.hostname + ':' : 'my-iobroker-host:').replace(':port/',`:${this.iobrokerConfig.port}/`)}",
+				  "cols": 4
+				},
+				{
+				  "type": "html",
+				  "label": "For Convert field:",
+				  "text": [
+					"Conversion receives data as variable $ and can convert it to some new format which will then be stored in state(s) named with path.",
+					"example: <code>{ tempC: FtoC($.tempf, 1) }</code> where FtoC an internal conversion for Farenheit to Celsius is.",
+					"Other functions are <code>toNum(str, digits_after_comma), CtoF(..) and ItoMM(...)</code>",
+					"The field names can end with '_' and type/unit information. The text after the '_' will be the type like with '_date',",
+					"or if type should be number with specific unit you can name it '_$km/h'.",
+					"There are some predefined types available as well which can be named directly (without $):",
+					"<code>'Hum', 'Kmh', 'Deg', 'Date', 'Hpa', 'Mm', 'Wm2', 'Txt', 'C', 'V'</code> where V is just a number Value, the many of the other set also roles."
+				  ],
+				  "style": "width='98%'",
+				  "cols": 8
+				},
+				{
+				  "ruler": "hr"
+				},
+				{
+				  "type": "table",
+				  "label": "Path Table",
+				  "value": "pathtable",
+				  "disable-sort": true,
+				  "cols": 12,
+				  "items": [
 					{
-						"type": "number",
-						"min": 1000,
-						"max": 65000,
-						"label": "Port",
-						"placeholder": "Enter port address on which iobroker will listen to your request",
-						"hint": "Port to listen on >1000 & <65000",
-						"value": "port",
-						"sm3":true,
-						"prepend-icon": "mdi-home-import-outline",
-						"rules": ["numberRule"],
-						"cols": 3
+					  "text": "Path",
+					  "type": "string",
+					  "value": "path",
+					  "align": "start",
+					  "rules": [
+						"uniqueTableRule"
+					  ],
+					  "sortable": true,
+					  "divider": true,
+					  "default": "new path",
+					  "width": "19%"
 					},
 					{
-						"type": "html",
-						"label": "For Path field:",
-						"text": [
-							"The external device can connect to the adapter's server using following example:",
-							"<code>http://iobroker-server:port/<strong>path</strong>?data=...</code>"],
-						"style": "width='98%'",
-						"cols": 9
+					  "text": "Method",
+					  "type": "select",
+					  "select": [
+						"GET",
+						"POST"
+					  ],
+					  "value": "method",
+					  "align": "center",
+					  "sortable": false,
+					  "divider": true,
+					  "width": "8%"
 					},
 					{
-						"type": "html",
-						"label": "For Method field:",
-						"text": [
-							"Either <code>GET</code> or <code>POST</code> is supported.",
-							"By entering the below URL in your browser (changing iobroker-server to your server name or ip) you can test the 'Test' entry:" ,
-							"<a target='_blank' href='http://localhost:3000/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://localhost:3000/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>"],
-						"style": "width='98%'",
-						"eval": "$.text[2] = $.text[2].replace(/localhost:/g,this.iobrokerHostConnection ? this.iobrokerHostConnection.hostname + ':' : 'my-iobroker-host:')",
-						"cols": 3
+					  "text": "Convert",
+					  "value": "convert",
+					  "type": "textarea",
+					  "align": "start",
+					  "default": "$",
+					  "sortable": true,
+					  "divider": true,
+					  "width": "60%"
 					},
 					{
-						"type": "text",
-						"label": "For Convert field:",
-						"html": "Conversion receives data as variable $ and can convert it to some new format which will then be stored in state(s) named with path.<br>example: '{ tempC: FtoC($.tempf, 1) }' where FtoC an internal conversion for Farenheit to Celsius is.<br>Other functions are <code>toNum(str, digits_after_comma), CtoF(..) and ItoMM(...)</code><br>The field names can end with '_' and type/unit information. The text after the '_' will be the type like with '_date', or if type should be number with specific unit you can name it '_$km/h'. There are some predefined types available as well which can be named directly (without $): <strong>'Hum', 'Kmh', 'Deg', 'Date', 'Hpa', 'Mm', 'Wm2', 'Txt', 'C', 'V'</strong> where V is just a number Value, the many of the other set also roles.",
-						"style": "width='98%'",
-						"cols": 9
-					},
-					{
-						"ruler": "hr"
-					},
-					{
-						"type": "table",
-						"label": "Path Table",
-						"value": "pathtable",
-						"disable-sort": true,
-						"cols": 12,
-						"items": [
-							{
-								"text": "Path",
-								"type": "string",
-								"value": "path",
-								"align": "start",
-								"rules": ["uniqueTableRule"],
-								"sortable": true,
-								"divider": true,
-								"default": "new path",
-								"width": "19%"
-							  },
-							  {
-								"text": "Method",
-								"type": "select",
-								"select": ["GET","POST"],
-								"value": "method",
-								"align": "center",
-								"sortable": false,
-								"divider": true,
-								"width": "8%"
-							  },
-							  {
-								"text": "Convert",
-								"value": "convert",
-								"type": "textarea",
-								"align": "start",
-								"default": "$",
-								"sortable": true,
-								"divider": true,
-								"width": "60%"
-							  },
-							  {
-								"text": "Enabled",
-								"type": "checkbox",
-								"value": "enabled",
-								"sortable": false,
-								"align": "center",
-								"divider": true,
-								"width": "5%"
-							  }
-						]
+					  "text": "Enabled",
+					  "type": "checkbox",
+					  "value": "enabled",
+					  "sortable": false,
+					  "align": "center",
+					  "divider": true,
+					  "width": "5%"
 					}
-	
-				]
+				  ]
+				}
+			  ]
 			},
 			{
-				"label": "Contact",
-				"icon": "mdi-phone",
-				"items": [
-					{
-						"typer": "text",
-						"label": "For Path field:",
-						"html": "The external device can connect to the adapter's server using following path: example `http://iobroker-server:port/<strong>path</strong>?data=...`",
-						"sm4": true,
-						"class": "pa-1 align-self-end",
-						"style": "width='98%'",
-						"cols": 2
-					},
-					{
-						"type": "string",
-						"label": "String",
-						"placeholder": "Enter HTML...",
-						"value": "string1",
-						"prepend-icon": "mdi-home-import-outline",
-						"rules": ["($ && $.length>0) || 'String cannot be empty!'"],
-						"cols": 3
-					},
-					{
-						"ruler": "horizontal"
-					},
-					{
-						"type": "checkbox",
-						"label": "Checkbox",
-						"value": "checkbox1",
-						"cols": 2 
-					},
-					{
-						"type": "chips",
-						"label": "Chips",
-						"value": "chips1",
-						"select_O": ["aaa","bbb",3,5],
-						"delimiters": [",",";"],
-						"flat":true,
-						"hint": "please enter: old device name = new device name",
-						"rules": ["{const f = $.filter(i => i.indexOf('=')<1 || i.length <3); return !f.length ? true : `At least 3 chars and need to include an '=' after first position for ${f[0]}`;}"],
-						"cols": 6
-					},
-					{
-						"type": "checkbox",
-						"value": "checkbox2"
-					},
-					{
-						"ruler": "spacer",
-						"type": "switch",
-						"label": "Switch",
-						"value": "checkbox1"
-					},
-					{
-						"type": "text",
-						"label": "Html Contact",
-						"html": "Das ist<br>html",
-						"attrs": {
-							"sm4": true,
-							"class": "pa-1"
-						}
-					},
-					{
-						"type": "vertical"
-					},
-					{
-						"type": "text",
-						"label": "Text Contact",
-						"text": "Das ist Text",
-						"attrs": {
-							"sm4": true,
-							"class": "pa-2 align-self-center"
-						}
-					}
-				]
+			  "label": "Contact",
+			  "icon": "mdi-phone",
+			  "devOnly": true,
+			  "items": [
+				{
+				  "typer": "text",
+				  "label": "For Path field:",
+				  "html": "The external device can connect to the adapter's server using following path: example `http://iobroker-server:port/<strong>path</strong>?data=...`",
+				  "sm4": true,
+				  "class": "pa-1 align-self-end",
+				  "style": "width='98%'",
+				  "cols": 2
+				},
+				{
+				  "type": "string",
+				  "label": "String",
+				  "placeholder": "Enter HTML...",
+				  "value": "string1",
+				  "prepend-icon": "mdi-home-import-outline",
+				  "rules": [
+					"($ && $.length>0) || 'String cannot be empty!'"
+				  ],
+				  "cols": 3
+				},
+				{
+				  "ruler": "horizontal"
+				},
+				{
+				  "type": "checkbox",
+				  "label": "Checkbox",
+				  "value": "checkbox1",
+				  "cols": 2
+				},
+				{
+				  "type": "chips",
+				  "label": "Chips",
+				  "value": "chips1",
+				  "select_O": [
+					"aaa",
+					"bbb",
+					3,
+					5
+				  ],
+				  "delimiters": [
+					",",
+					";"
+				  ],
+				  "flat": true,
+				  "hint": "please enter: old device name = new device name",
+				  "rules": [
+					"{const f = $.filter(i => i.indexOf('=')<1 || i.length <3); return !f.length ? true : `At least 3 chars and need to include an '=' after first position for ${f[0]}`;}"
+				  ],
+				  "cols": 6
+				},
+				{
+				  "type": "checkbox",
+				  "value": "checkbox2"
+				},
+				{
+				  "ruler": "spacer",
+				  "type": "switch",
+				  "label": "Switch",
+				  "value": "checkbox1"
+				},
+				{
+				  "type": "text",
+				  "label": "Html Contact",
+				  "html": "Das ist<br>html",
+				  "attrs": {
+					"sm4": true,
+					"class": "pa-1"
+				  }
+				},
+				{
+				  "type": "vertical"
+				},
+				{
+				  "type": "text",
+				  "label": "Text Contact",
+				  "text": "Das ist Text",
+				  "attrs": {
+					"sm4": true,
+					"class": "pa-2 align-self-center"
+				  }
+				}
+			  ]
 			}
-		],
-	
+		  ],
+		  
 		"port": "3000",
 		"pathtable": [
 			{

@@ -82,71 +82,79 @@
     </v-app-bar>
 
     <v-content id="MyAppContent" class="flex-wrap">
-      <fjB
-        class="ma-1"
-        label="getEnums"
-        @click="getEnums('').then((res) => setTmp(res))"
-      />
-      <fjB
-        class="ma-1"
-        label="getGroups"
-        @click="getGroups().then((res) => setTmp(res))"
-      />
-      <fjB
-        class="ma-1"
-        label="getUsers"
-        @click="getUsers().then((res) => setTmp(res))"
-      />
-      <fjB class="ma-1" label="config" @click="setTmp(iobrokerConfig)" />
-      <fjB
-        class="ma-1"
-        label="configTranslated"
-        @click="setTmp(configTranslated)"
-      />
-      <fjB
-        class="ma-1"
-        label="getExtendableInstances"
-        @click="getExtendableInstances().then((res) => setTmp(res))"
-      />
-      <fjB
-        class="ma-1"
-        label="getAdapterInstances"
-        @click="getAdapterInstances().then((res) => setTmp(res))"
-      />
-      <fjB
-        class="ma-1"
-        label="getState"
-        @click="
-          getState('acceptdata.0.easyweather.outdoorTemp').then((res) =>
-            setTmp(res)
-          )
-        "
-      />
-      <fjB
-        class="ma-1"
-        label="getObject"
-        @click="
-          getObject('acceptdata.0.easyweather.outdoorTemp').then((res) =>
-            setTmp(res)
-          )
-        "
-      />
-      <fjB
-        class="ma-1"
-        label="getHost"
-        @click="getHost(iobrokerAdapterCommon.host).then((res) => setTmp(res))"
-      />
-      <fjB
-        class="ma-1"
-        :label="$tc('getMissing', 2)"
-        @click="setTmp($missing)"
-      />
-      <fjB
-        class="ma-1"
-        :label="$tc('getInterfaces', 2)"
-        @click="getInterfaces().then((res) => setTmp(res))"
-      />
-      <fjB class="ma-1" label="alerttest" @click="$alert('0|error:Forever')" />
+      <div v-if="devMode">
+        <fjB
+          class="ma-1"
+          label="getEnums"
+          @click="getEnums('').then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          label="getGroups"
+          @click="getGroups().then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          label="getUsers"
+          @click="getUsers().then((res) => setTmp(res))"
+        />
+        <fjB class="ma-1" label="config" @click="setTmp(iobrokerConfig)" />
+        <fjB
+          class="ma-1"
+          label="configTranslated"
+          @click="setTmp(configTranslated)"
+        />
+        <fjB
+          class="ma-1"
+          label="getExtendableInstances"
+          @click="getExtendableInstances().then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          label="getAdapterInstances"
+          @click="getAdapterInstances().then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          label="getState"
+          @click="
+            getState('acceptdata.0.easyweather.outdoorTemp').then((res) =>
+              setTmp(res)
+            )
+          "
+        />
+        <fjB
+          class="ma-1"
+          label="getObject"
+          @click="
+            getObject('acceptdata.0.easyweather.outdoorTemp').then((res) =>
+              setTmp(res)
+            )
+          "
+        />
+        <fjB
+          class="ma-1"
+          label="getHost"
+          @click="
+            getHost(iobrokerAdapterCommon.host).then((res) => setTmp(res))
+          "
+        />
+        <fjB
+          class="ma-1"
+          :label="$tc('getMissing', 2)"
+          @click="setTmp($missing)"
+        />
+        <fjB
+          class="ma-1"
+          :label="$tc('getInterfaces', 2)"
+          @click="getInterfaces().then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          label="alerttest"
+          @click="$alert('0|error:Forever')"
+        />
+      </div>
       <v-container fluid>
         <v-row class="px-2">
           <fjConfigElement
@@ -176,7 +184,11 @@
  -->
         </v-row>
       </v-container>
-      <code class="error--text text--darken-4" v-text="tmptext" />
+      <code
+        v-if="devMode"
+        class="error--text text--darken-4"
+        v-text="tmptext"
+      />
     </v-content>
     <fjConfirm />
   </v-app>
@@ -261,7 +273,7 @@ export default {
   //  watch: {},
 
   async mounted() {
-    if (!this.iobrokerConfigOrig && this.socketConnected) this.loadIoBroker();
+    /*     if (!this.iobrokerConfigOrig && this.socketConnected) this.loadIoBroker();
     this.setTmp(this.brEnv, true);
     this.setTmp("iobrokerInstance: " + this.iobrokerInstance, true);
     this.setTmp(
@@ -271,6 +283,7 @@ export default {
     const host = await this.getHost();
     this.setTmp("Host", true);
     this.setTmp(host, true);
+ */
   },
 
   //  created() {},

@@ -19,7 +19,6 @@ Vue.component("fjConfigElement", fjConfigElement);
 Vue.component("fjFileLoadButton", fjFileLoadButton);
 Vue.component("fjFileSaveButton", fjFileSaveButton);
 
-
 Vue.config.productionTip = false;
 //Vue.component(VueChart.name, VueChart);
 /*
