@@ -28,7 +28,6 @@ Vue.component("fjConfigItem", fjConfigItem);
 Vue.component("fjConfigRuler", fjConfigRuler);
 Vue.component("fjConfigTable", fjConfigTable);
 
-
 export default {
   name: "fjConfigElement",
   //  mixins: [attrsMixin],

@@ -19,23 +19,40 @@ const install = function (Vue, _options) {
           let tout = setTimeout(
             () =>
               rej(
-                new Error(
-                  "Timeout SocketIo Response to " + event + ": " + data
-                ),
-                (tout = null)
+                (tout = null),
+                new Error(`socketEmit - timeout for ${event}: ${data}`)
               ),
             5000
           );
-          //          console.log("emit:", event, ...data);
+//          console.log("emit:", event, ...data);
           this.$socket.emit(event, ...data, (err, result) => {
-            //            console.log(err, result);
+ //           console.log(`emit ${event} returned:`, err, result);
             if (tout) clearTimeout(tout);
-            else return rej("Timeout");
             if (err || !result)
               rej(
-                err ? err : new Error("No result for: " + event + ": " + data)
+                err
+                  ? err
+                  : new Error(`socketEmit - no result for ${event}: ${data}`)
               );
             else res(result);
+          });
+        });
+      },
+      async socketSendTo(event, ...data) {
+        return new Promise((res, rej) => {
+          let tout = setTimeout(
+            () =>
+              rej(
+                (tout = null),
+                new Error(`socketSendTo - timeout for ${event}: ${data}`)
+              ),
+            10000
+          );
+//          console.log("socketSendTo:", event, ...data);
+          this.$socket.emit(event, ...data, (result) => {
+            if (tout) clearTimeout(tout);
+//            console.log(`socketSendTo ${event} returned:`, result);
+            res(result);
           });
         });
       },

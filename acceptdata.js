@@ -256,7 +256,6 @@ class Acceptdata extends utils.Adapter {
       this.config.pathtable.map((i) => {
         let { path, method, convert, enabled } = i;
         if (enabled) {
-          method = ["GET", "POST"][Number(method) - 1];
           convert = convert || "$";
           if (path.startsWith("/")) path = path.slice(1);
           this.log.info(
@@ -281,7 +280,7 @@ class Acceptdata extends utils.Adapter {
                       color: true,
                     })
                 );
-                response.send("success");
+                response.send("success: " + JSON.stringify(res, null));
                 wait(1).then((_) => stData(res, path));
                 //      response.send("Hello from Express!");
               });

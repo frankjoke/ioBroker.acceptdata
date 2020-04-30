@@ -4,6 +4,15 @@
     <div v-if="cToolItem.text" v-text="cToolItem.text" class="caption" />
     <div v-if="cToolItem.html" v-html="cToolItem.html" class="caption" />
   </v-flex>
+  <v-flex v-else-if="cToolItem.type == 'html'" v-bind="attrs('text,label')">
+    <div v-if="cToolItem.label" v-text="cToolItem.label" class="subtitle-2" />
+    <div
+      v-if="Array.isArray(cToolItem.text)"
+      v-html="cToolItem.text.join('<br>')"
+      class="caption"
+    />
+    <div v-else v-html="cToolItem.text" class="caption" />
+  </v-flex>
   <v-text-field
     v-else-if="cToolItem.type == 'number'"
     dense

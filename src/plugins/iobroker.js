@@ -1,20 +1,22 @@
 //import Vue from "vue";
 import packagej from "../../package.json";
 import iopackage from "../../io-package.json";
-import { runInThisContext } from "vm";
+//import { runInThisContext } from "vm";
+
+// var path = location.pathname;
+// var parts = path.split("/");
+// parts.splice(-3);
+// var instance = window.location.search;
+
 
 //console.log(process.env);
 const mylang = (navigator.language || navigator.userLanguage).slice(0, 2);
-const brEnv = {
-  path: location.pathname,
-  instance: window.location.search,
-};
-
 const iobroker = {
   data() {
     return {
       iobrokerConfigOrig: "",
       iobrokerHost: "",
+      iobrokerHostConnection: {},
       iobrokerLang: mylang || "en",
       iobrokerInstance: window.location.search.slice(1) || "0",
       iobrokerConfig: iopackage.native,
@@ -25,13 +27,13 @@ const iobroker = {
       iobrokerAdapterCommon: iopackage.common,
       ioBrokerCerts: [],
       socketConnected: false,
-      configTool: iopackage.configTool,
-      brEnv,
+      configTool: [],
     };
   },
   sockets: {
     async connect() {
       this.socketConnected = true;
+      this.iobrokerHostConnection = this.$socket.io.opts;
       this.$alert("socket connected...");
       await this.wait(10);
       return this.loadIoBroker();
@@ -56,39 +58,49 @@ const iobroker = {
       return this.iobrokerAdapter + "." + this.iobrokerInstance;
       //      return this.iobrokerInstance;
     },
-  },
-
-  watch: {
-    configTool(newV) {
+    configTranslated() {
+      const newV = JSON.parse(JSON.stringify(this.configTool));
+      //      const newV = this.configTool;
       const that = this;
 
       function transl(o) {
         const props = Object.getOwnPropertyNames(o);
-        if (!o._isTranslated) {
-          for (const p of props)
-            if (
-              [
-                "label",
-                "text",
-                "html",
-                "tooltip",
-                "placeholder",
-                "hint",
-              ].indexOf(p) >= 0
-            )
-              o[p] = that.$t(o[p]);
-          if (Array.isArray(o.items)) for (const i of o.items) transl(i);
-          o._isTranslated = true;
+        for (const p of props)
+          if (
+            ["label", "text", "html", "tooltip", "placeholder", "hint"].indexOf(
+              p
+            ) >= 0
+          )
+            o[p] = that.$t(o[p]);
+        if (Array.isArray(o.items)) for (const i of o.items) transl(i);
+        if (o.eval) {
+          const $ = o;
+          const ft = o.eval.trim();
+          const fun = new Function(
+            "$",
+            ft.startsWith("{") ? ft : `return (${ft});`
+          ).bind(that);
+          try {
+            const res = fun(o);
+            //            console.log("TranslateEval:", o.eval, res);
+          } catch (e) {
+            //            console.log("eval error in translation:", o.eval, e);
+          }
         }
       }
-      //      console.log("configTool", newV);
-      for (const i of newV) transl(i);
+      for (const i of newV)
+        if (!i._isTranslated) {
+          transl(i);
+          i._isTranslated = true;
+        }
+      return newV;
     },
   },
 
+  //  watch: {},
+
   methods: {
     async loadIoBroker() {
-      this.setTmp(this.brEnv, true);
       this.setTmp("iobrokerInstance: " + this.iobrokerInstance, true);
       this.setTmp(
         "iobrokerAdapterInstance: " + this.iobrokerAdapterInstance,
@@ -104,32 +116,58 @@ const iobroker = {
         this.iobrokerInstance = this.iobrokerAdapter + ".0";
         //        console.log("beforeMount!", `instance="${this.iobrokerInstance}"`);
       }
-      return this.getAdapterConfig();
-    },
-
-    async getHost() {
-      const host = await this.socketEmit(
-        "getHostByIp",
-        this.iobrokerHost || this.iobrokerAdapterCommon.host || undefined
-      ).catch((e) => (console.log(e), null));
-    },
-
-    setIobrokerConfig(conf) {
-      this.iobrokerConfig = conf;
-      this.iobrokerConfigOrig = JSON.stringify(conf);
-    },
-
-    async getAdapterConfig() {
       const res = await this.socketEmit(
         "getObject",
         "system.adapter." + this.iobrokerAdapterInstance
       );
       this.setIobrokerConfig(res.native);
-      if (res.configTool && res.configTool.length)
-        this.configTool = res.configTool;
+      if (res.common) this.iobrokerAdapterCommon = res.common;
+      if (res.native._configTool && res.native._configTool.length)
+        this.configTool = res.native._configTool;
       this.$alert("new config received");
-      await this.wait(100);
+      await this.wait(10);
       this.$forceUpdate();
+      return res;
+    },
+
+    async sendTo(_adapter_instance, command, message) {
+      return this.socketSendTo(
+        "sendTo",
+        _adapter_instance || this.iobrokerAdapterInstance,
+        command,
+        message
+      );
+    },
+
+    async sendToHost(host, command, message) {
+      return this.socketSendTo(
+        "sendToHost",
+        host || this.iobrokerAdapterCommon.host,
+        command,
+        message
+      );
+    },
+
+    async getInterfaces(onlyNames) {
+      const result = await this.sendToHost(null, "getInterfaces", null);
+      if (result && result.result) {
+        if (onlyNames) return Object.keys(result.result);
+        else return Object.entries(result.result);
+      } else return [];
+    },
+
+    async getHost(ahost) {
+      ahost = ahost || this.iobrokerAdapterCommon.host;
+      const host = await this.socketEmit("getHostByIp", ahost).then(
+        (res) => (this.iobrokerHost = res),
+        (e) => null
+      );
+      return host;
+    },
+
+    setIobrokerConfig(conf) {
+      this.iobrokerConfig = conf;
+      this.iobrokerConfigOrig = JSON.stringify(conf);
     },
 
     async saveAdapterConfig(common) {
@@ -142,7 +180,7 @@ const iobroker = {
       if (oldObj.native) oldObj.native = {};
       else if (!common) return null;
       for (var a in native) {
-        if (native.hasOwnProperty(a)) {
+        if (native.hasOwnProperty(a && a != "_configTool")) {
           oldObj.native[a] = native[a];
         }
       }

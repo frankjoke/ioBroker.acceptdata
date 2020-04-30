@@ -26,7 +26,7 @@
         />
       </div>
       <v-tabs centered v-model="page">
-        <v-tab v-for="item in configTool" v-bind:key="item.label">
+        <v-tab v-for="item in configTranslated" v-bind:key="item.label">
           <v-icon v-if="item.icon" left small>{{ item.icon }}</v-icon>
           <span v-t="item.label" />
         </v-tab>
@@ -98,7 +98,11 @@
         @click="getUsers().then((res) => setTmp(res))"
       />
       <fjB class="ma-1" label="config" @click="setTmp(iobrokerConfig)" />
-      <fjB class="ma-1" label="configtool" @click="setTmp(configTool)" />
+      <fjB
+        class="ma-1"
+        label="configTranslated"
+        @click="setTmp(configTranslated)"
+      />
       <fjB
         class="ma-1"
         label="getExtendableInstances"
@@ -129,8 +133,18 @@
       />
       <fjB
         class="ma-1"
+        label="getHost"
+        @click="getHost(iobrokerAdapterCommon.host).then((res) => setTmp(res))"
+      />
+      <fjB
+        class="ma-1"
         :label="$tc('getMissing', 2)"
         @click="setTmp($missing)"
+      />
+      <fjB
+        class="ma-1"
+        :label="$tc('getInterfaces', 2)"
+        @click="getInterfaces().then((res) => setTmp(res))"
       />
       <fjB class="ma-1" label="alerttest" @click="$alert('0|error:Forever')" />
       <v-container fluid>
@@ -194,8 +208,6 @@ export default {
 
   data: () => {
     return {
-      path,
-      parts,
       page: 0,
       tmptext: "",
     };
@@ -241,7 +253,8 @@ export default {
 
   computed: {
     configPage() {
-      return this.configTool[this.page];
+      const cp = this.configTranslated[this.page];
+      return cp ? cp : { items: [] };
     },
   },
 
