@@ -1,5 +1,5 @@
 process.env.VUE_APP_VERSION = require("./package.json").version;
-process.env.VUE_APP_IOBROKER = "buster10.fritz.box:8081";
+process.env.VUE_APP_IOBROKER = "localhost:8084";
 
 module.exports = {
   transpileDependencies: ["vuetify", "vue-echarts", "resize-detector"],

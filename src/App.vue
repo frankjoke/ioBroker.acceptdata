@@ -151,6 +151,11 @@
         />
         <fjB
           class="ma-1"
+          :label="$tc('loadSystemConfig', 2)"
+          @click="loadSystemConfig().then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
           label="alerttest"
           @click="$alert('0|error:Forever')"
         />
@@ -225,7 +230,9 @@ export default {
     };
   },
 
+  //  created() {},
   //  beforeMount() {},
+  //  async mounted() {},
   //  filters: {},
 
   methods: {
@@ -237,30 +244,6 @@ export default {
       if (add) this.tmptext += "\n" + newT;
       else this.tmptext = "" + newT;
     },
-
-    /*
-    remove(item) {
-      this.selected.splice(this.selected.indexOf(item), 1);
-      this.selected = [...this.selected];
-    },
-
-    consoleLog(...args) {
-      let s = "";
-      args.map((l) => (s += l + " "));
-      this.message += s + "<br>";
-    },
-
-    proxyAxios(url, always) {
-      return axios({
-        method: "get",
-        url:
-          process.env.IS_ELECTRON && !always
-            ? url
-            : "http://cors-anywhere.herokuapp.com/" + url,
-        headers: { "Access-Control-Allow-Origin": true },
-      });
-    },
-*/
   },
 
   computed: {
@@ -271,22 +254,6 @@ export default {
   },
 
   //  watch: {},
-
-  async mounted() {
-    /*     if (!this.iobrokerConfigOrig && this.socketConnected) this.loadIoBroker();
-    this.setTmp(this.brEnv, true);
-    this.setTmp("iobrokerInstance: " + this.iobrokerInstance, true);
-    this.setTmp(
-      "iobrokerAdapterInstance: " + this.iobrokerAdapterInstance,
-      true
-    );
-    const host = await this.getHost();
-    this.setTmp("Host", true);
-    this.setTmp(host, true);
- */
-  },
-
-  //  created() {},
 };
 </script>
 <style scoped.vue>

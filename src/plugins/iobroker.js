@@ -27,7 +27,6 @@ const iobroker = {
       iobrokerAdapterCommon: iopackage.common,
       ioBrokerCerts: [],
       socketConnected: false,
-      configTool: [],
       devMode,
     };
   },
@@ -36,13 +35,12 @@ const iobroker = {
       this.socketConnected = true;
       this.iobrokerHostConnection = this.$socket.io.opts;
       this.$alert("socket connected...");
-      await this.wait(10);
-      return this.loadIoBroker();
     },
 
     disconnected() {
       this.socketConnected = true;
-      this.$alert("socket disconnected...");
+      this.$alert("Socket disconnected. try to reconnect...");
+      this.$socket.open();
     },
   },
 
@@ -59,9 +57,8 @@ const iobroker = {
       return this.iobrokerAdapter + "." + this.iobrokerInstance;
       //      return this.iobrokerInstance;
     },
+
     configTranslated() {
-      const newV = JSON.parse(JSON.stringify(this.configTool));
-      //      const newV = this.configTool;
       const that = this;
 
       function transl(o) {
@@ -80,45 +77,75 @@ const iobroker = {
           const fun = new Function(
             "$",
             ft.startsWith("{") ? ft : `return (${ft});`
-          ).bind(that);
+          );
           try {
-            const res = fun(o);
-            //            console.log("TranslateEval:", o.eval, res);
+            const res = fun.apply(that, [o]);
           } catch (e) {
-            //            console.log("eval error in translation:", o.eval, e);
+            console.log("eval error in translation:", o, e, that);
           }
         }
+        return o;
       }
-      for (const i of newV)
-        if (!i._isTranslated && (!devMode && !i.devOnly)) {
-          transl(i);
-          i._isTranslated = true;
-        }
+
+      const ict = this.iobrokerConfig && this.iobrokerConfig._configTool;
+      const ipt =
+        this.iopackage &&
+        this.iopackage.native &&
+        this.iopackage.native._configTool;
+      const oldV = this.copyObject(
+        ict && ict.length ? ict : ipt && ipt.length ? ipt : []
+      );
+      console.log(
+        "new config to translate:",
+        oldV,
+        this.iobrokerHostConnection.hostname,
+        this.iobrokerConfig.port
+      );
+      const newV = [];
+      for (const i of oldV) {
+        if (devMode || !i.devOnly) newV.push(transl(i));
+      }
       return newV;
     },
   },
 
   //  watch: {},
+  created() {
+    this.iobrokerInstance = window.location.search.slice(1) || "0";
+  },
+
+  beforeMount() {
+    this.iobrokerHostConnection = this.$socket.io.opts;
+  },
+
+  async mounted() {
+    this.iobrokerHostConnection = this.$socket.io.opts;
+    return this.loadIoBroker();
+    /*     return this.loadSystemConfig()
+          .then((_) => this.wait(10))
+          .then((_) => (this.iobrokerHostConnection = this.$socket.io.opts))
+          .then((_) => this.loadIoBroker());
+     */
+  },
 
   methods: {
+    copyObject(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    },
+
+    setIobrokerConfig(conf) {
+      const js = JSON.stringify(conf || {});
+      this.iobrokerConfig = JSON.parse(js);
+      this.iobrokerConfigOrig = js;
+    },
+
     async loadIoBroker() {
-      await this.loadSystemConfig();
-
-      this.$i18n.locale = this.iobrokerLang;
-
-      var instance = window.location.search.slice(1);
-      if (!instance && !this.iobrokerInstance) {
-        this.iobrokerInstance = this.iobrokerAdapter + ".0";
-        //        console.log("beforeMount!", `instance="${this.iobrokerInstance}"`);
-      }
-      const res = await this.socketEmit(
-        "getObject",
-        "system.adapter." + this.iobrokerAdapterInstance
-      );
+      const id = "system.adapter." + this.iobrokerAdapterInstance;
+      const res = await this.socketEmit("getObject", id);
+      if (!res)
+        return console.log(`No Adapterconfig received for ${id}!`), null;
       this.setIobrokerConfig(res.native);
       if (res.common) this.iobrokerAdapterCommon = res.common;
-      if (res.native._configTool && res.native._configTool.length)
-        this.configTool = res.native._configTool;
       this.$alert("new config received");
       await this.wait(10);
       this.$forceUpdate();
@@ -160,17 +187,12 @@ const iobroker = {
       return host;
     },
 
-    setIobrokerConfig(conf) {
-      this.iobrokerConfig = conf;
-      this.iobrokerConfigOrig = JSON.stringify(conf);
-    },
-
     async saveAdapterConfig(common) {
       const native = this.iobrokerConfig;
-      const id = "system.adapter." + this.iobrokerInstance;
+      const id = "system.adapter." + this.iobrokerAdapterInstance;
       const oldObj =
         (await this.socketEmit("getObject", id).catch((e) =>
-          console.log(id, e)
+          console.log("GetAdapterConfig:", id, e)
         )) || {};
       if (oldObj.native) oldObj.native = {};
       else if (!common) return null;
@@ -305,17 +327,19 @@ const iobroker = {
     },
 
     async loadSystemConfig() {
-      let res = await this.socketEmit("getObject", "system.config").then(
+      console.log("load system config");
+      let res = await this.socketEmit("system.config").then(
         (x) => x,
-        (e) => (console.log(e), null)
+        (e) => (console.log("system.config err:", e), null)
       );
       if (res && res.common) {
         this.ioBrokerSystemConfig = res;
         this.iobrokerLang = res.common.language || this.iobrokerLang;
+        this.$i18n.locale = this.iobrokerLang;
       }
-      res = await this.socketEmit("getObject", "system.certificates").then(
+      res = await this.socketEmit("system.certificates").then(
         (x) => x,
-        (e) => (console.log(e), null)
+        (e) => (console.log("system.certificates err", e), null)
       );
       if (res && res.native && res.native.certificates) {
         this.ioBrokerCerts = [];
@@ -381,6 +405,7 @@ const iobroker = {
           this.ioBrokerCerts.push(_cert);
         }
       }
+      return this.ioBrokerSystemConfig;
     },
   },
 };

@@ -2,12 +2,15 @@ import Vue from "vue";
 import SocketIO from "socket.io-client";
 import VueSocketIO from "vue-socket.io";
 
-const options = { path: "/socket.io" }; //Options object to pass into SocketIO
+const options = { path: "/socket.io" /* , autoConnect: false  */}; //Options object to pass into SocketIO
 const devMode = process.env.NODE_ENV !== "production";
 
-const server = devMode ? "ws://" + process.env.VUE_APP_IOBROKER : "/";
-//console.log(server, options);
+//const server = devMode ? "ws://" + process.env.VUE_APP_IOBROKER : "/";
+const server = "ws://localhost:8181/";
+//const server = "ws://buster10.fritz.box:8081/";
+//const server = "/";
 const socket = SocketIO(server, options);
+//console.log("SocketIO:", server, options, socket);
 
 //console.log(process.env);
 const mylang = (navigator.language || navigator.userLanguage).slice(0, 2);
@@ -25,16 +28,11 @@ const install = function (Vue, _options) {
               ),
             5000
           );
-//          console.log("emit:", event, ...data);
+          //          console.log("emit:", event, ...data);
           this.$socket.emit(event, ...data, (err, result) => {
- //           console.log(`emit ${event} returned:`, err, result);
+            //           console.log(`emit ${event} returned:`, err, result);
             if (tout) clearTimeout(tout);
-            if (err || !result)
-              rej(
-                err
-                  ? err
-                  : new Error(`socketEmit - no result for ${event}: ${data}`)
-              );
+            if (err) rej(err)
             else res(result);
           });
         });
@@ -49,10 +47,10 @@ const install = function (Vue, _options) {
               ),
             10000
           );
-//          console.log("socketSendTo:", event, ...data);
+          //          console.log("socketSendTo:", event, ...data);
           this.$socket.emit(event, ...data, (result) => {
             if (tout) clearTimeout(tout);
-//            console.log(`socketSendTo ${event} returned:`, result);
+            //            console.log(`socketSendTo ${event} returned:`, result);
             res(result);
           });
         });

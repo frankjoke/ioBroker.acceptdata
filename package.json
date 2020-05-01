@@ -80,7 +80,7 @@
     "vue-cli-plugin-vuetify": "^2.0.5",
     "vue-clipboard2": "^0.3.1",
     "vue-i18n": "^8.17.4",
-    "vue-socket.io": "^3.0.7",
+    "vue-socket.io": "^3.0.8",
     "vue-template-compiler": "^2.6.11",
     "vuetify": "^2.2.26",
     "vuetify-loader": "^1.4.3"
