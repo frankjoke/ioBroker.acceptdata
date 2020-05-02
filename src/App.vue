@@ -118,18 +118,14 @@
           class="ma-1"
           label="getState"
           @click="
-            getState('acceptdata.0.easyweather.outdoorTemp').then((res) =>
-              setTmp(res)
-            )
+            getState('acceptdata.0.Test.speed').then((res) => setTmp(res))
           "
         />
         <fjB
           class="ma-1"
           label="getObject"
           @click="
-            getObject('acceptdata.0.easyweather.outdoorTemp').then((res) =>
-              setTmp(res)
-            )
+            getObject('acceptdata.0.Test.temp').then((res) => setTmp(res))
           "
         />
         <fjB

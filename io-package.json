@@ -79,7 +79,7 @@
 			{
 				"path": "easyweather",
 				"method": "GET",
-				"convert": "{ outdoorTemp_C: FtoC($.tempf, 1), indoorTemp_C: FtoC($.indoortempf,1), dewPoint_C: FtoC($.dewptf,1), windChill_C: FtoC($.windchillf,1), indoorHumidity_Hum: toNum($.indoorhumidity), outdoorHumidity_Hum: toNum($.humidity), windSpeed_Kmh: toNum($.windspeed_mph*1.61,1), windGust_Kmh: toNum($.windgustmph*1.61,1), windDir_Deg: toNum($.winddir), lastUpdate_Date: new Date($.dateutc.split(\" \").join(\"T\")+\".0Z\"), absBaro_Hpa: toNum($.absbaromin * 33.862,0), baro_Hpa: toNum($.baromin * 33.862, 0), rain_Mm: ItoMM($.rainin), rainDaily_Mm: ItoMM($.dailyrainin,1), rainWeekly_Mm: ItoMM($.weeklyrainin,0), rainMonthly_Mm: ItoMM($.monthlyrainin,0), solarradiation_Wm2: toNum($.solarradiation,2), uv_V: Number($.UV), software_Txt: $.softwaretype}",
+				"convert": "{ outdoorTemp_C: FtoC($.tempf, 1),\n  indoorTemp_C: FtoC($.indoortempf,1),\n  dewPoint_C: FtoC($.dewptf,1),\n  windChill_C: FtoC($.windchillf,1),\n  indoorHumidity_Hum: toNum($.indoorhumidity),\n  outdoorHumidity_Hum: toNum($.humidity),\n  windSpeed_Kmh: toNum($.windspeed_mph*1.61,1),\n  windGust_Kmh: toNum($.windgustmph*1.61,1),\n  windDir_Deg: toNum($.winddir),\n  lastUpdate_Date: new Date($.dateutc.split(\" \").join(\"T\")+\".0Z\"),\n  absBaro_Hpa: toNum($.absbaromin * 33.862,0),\n  baro_Hpa: toNum($.baromin * 33.862, 0),\n  rain_Mm: ItoMM($.rainin),\n  rainDaily_Mm: ItoMM($.dailyrainin,1),\n  rainWeekly_Mm: ItoMM($.weeklyrainin,0),\n  rainMonthly_Mm: ItoMM($.monthlyrainin,0),\n  solarradiation_Wm2: toNum($.solarradiation,2),\n  uv_V: Number($.UV),\n  software_Txt: $.softwaretype}",
 				"enabled": true
 			},
 			{
@@ -95,116 +95,113 @@
 				"icon": "mdi-cog",
 				"items": [
 					{
-					  "type": "number",
-					  "min": 1000,
-					  "max": 65000,
-					  "label": "Port",
-					  "placeholder": "Enter port address on which iobroker will listen to your request",
-					  "hint": "Port to listen on >1000 & <65000",
-					  "value": "port",
-					  "sm3": true,
-					  "prepend-icon": "mdi-home-import-outline",
-					  "rules": [
-						"numberRule"
-					  ],
-					  "cols": 4
+						"type": "number",
+						"min": 1000,
+						"max": 65000,
+						"label": "Port",
+						"placeholder": "Enter port address on which iobroker will listen to your request",
+						"hint": "Port to listen on >1000 & <65000",
+						"value": "port",
+						"sm3": true,
+						"prepend-icon": "mdi-home-import-outline",
+						"rules": [
+							"numberRule"
+						],
+						"cols": 4
 					},
 					{
-					  "type": "html",
-					  "label": "For Method field:",
-					  "text": [
-						"Either <code>GET</code> or <code>POST</code> is supported.",
-						"By entering the below URL in your browser (changing iobroker-server to your server name or ip) you can test the 'Test' entry:",
-						"<a target='_top' href='http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>"
-					  ],
-					  "style": "width='98%'",
-					  "eval": "{for (i in $.text) $.text[i] = $.text[i].replace(/myhost:/g,this.iobrokerHostConnection ? this.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${this.iobrokerConfig.port}/`)}",
-					  "cols": 8
+						"type": "html",
+						"label": "For Method field:",
+						"text": [
+							"Either <code>GET</code> or <code>POST</code> is supported.",
+							"By entering the below URL in your browser (changing iobroker-server to your server name or ip) you can test the 'Test' entry (control-click to open in new Window!):",
+							"<a target='_blank' rel='noopener noreferrer'  href='http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>"
+						],
+						"style": "width='98%'",
+						"eval": "{for (i in $.text) $.text[i] = $.text[i].replace(/myhost:/g,this.iobrokerHostConnection ? this.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${this.iobrokerConfig.port}/`)}",
+						"cols": 8
 					},
 					{
-					  "type": "html",
-					  "label": "For Path field:",
-					  "text": [
-						"The external device can connect to the adapter's server using following example:",
-						"`http://myhost:port/<code>path</code>?data=...`"
-					  ],
-					  "style": "width='98%'",
-					  "eval": "{for (i in $.text) $.text[i] = $.text[i].replace(/myhost:/g,this.iobrokerHostConnection ? this.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${this.iobrokerConfig.port}/`)}",
-					  "cols": 4
+						"type": "html",
+						"label": "For Path field:",
+						"text": [
+							"The external device can connect to the adapter's server using following example:",
+							"`http://myhost:port/<code>path</code>?data=...`"
+						],
+						"style": "width='98%'",
+						"eval": "{for (i in $.text) $.text[i] = $.text[i].replace(/myhost:/g,this.iobrokerHostConnection ? this.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${this.iobrokerConfig.port}/`)}",
+						"cols": 4
 					},
 					{
-					  "type": "html",
-					  "label": "For Convert field:",
-					  "text": [
-						"Conversion receives data as variable $ and can convert it to some new format which will then be stored in state(s) named with path.",
-						"example: <code>{ tempC: FtoC($.tempf, 1) }</code> where FtoC an internal conversion for Farenheit to Celsius is.",
-						"Other functions are <code>toNum(str, digits_after_comma), CtoF(..) and ItoMM(...)</code>",
-						"The field names can end with '_' and type/unit information. The text after the '_' will be the type like with '_date',",
-						"or if type should be number with specific unit you can name it '_$km/h'.",
-						"There are some predefined types available as well which can be named directly (without $):",
-						"<code>'Hum', 'Kmh', 'Deg', 'Date', 'Hpa', 'Mm', 'Wm2', 'Txt', 'C', 'V'</code> where V is just a number Value, the many of the other set also roles."
-					  ],
-					  "style": "width='98%'",
-					  "cols": 8
+						"type": "html",
+						"label": "For Convert field:",
+						"text": [
+							"Conversion receives data as variable $ and can convert it to some new format which will then be stored in state(s) named with path.",
+							"example: <code>{ tempC: FtoC($.tempf, 1) }</code> where FtoC an internal conversion for Farenheit to Celsius is.",
+							"Other functions are <code>toNum(str, digits_after_comma), CtoF(...) and ItoMM(...)</code>",
+							"The field names can end with '_' and type/unit information. The text after the '_' will be the type like with '_date',",
+							"or if type should be number with specific unit you can name it '_$km/h'.",
+							"There are some predefined types available as well which can be named directly (without $):",
+							"<code>'Hum', 'Kmh', 'Deg', 'Date', 'Hpa', 'Mm', 'Wm2', 'Txt', 'C', 'V'</code> where V is just a number Value, the many of the other set also roles."
+						],
+						"style": "width='98%'",
+						"cols": 8
 					},
 					{
-					  "ruler": "hr"
-					},
-					{
-					  "type": "table",
-					  "label": "Path Table",
-					  "value": "pathtable",
-					  "disable-sort": true,
-					  "cols": 12,
-					  "items": [
-						{
-						  "text": "Path",
-						  "type": "string",
-						  "value": "path",
-						  "align": "start",
-						  "rules": [
-							"uniqueTableRule"
-						  ],
-						  "sortable": true,
-						  "divider": true,
-						  "default": "new path",
-						  "width": "19%"
-						},
-						{
-						  "text": "Method",
-						  "type": "select",
-						  "select": [
-							"GET",
-							"POST"
-						  ],
-						  "value": "method",
-						  "align": "center",
-						  "sortable": false,
-						  "divider": true,
-						  "width": "8%"
-						},
-						{
-						  "text": "Convert",
-						  "value": "convert",
-						  "type": "textarea",
-						  "align": "start",
-						  "default": "$",
-						  "sortable": true,
-						  "divider": true,
-						  "width": "60%"
-						},
-						{
-						  "text": "Enabled",
-						  "type": "checkbox",
-						  "value": "enabled",
-						  "sortable": false,
-						  "align": "center",
-						  "divider": true,
-						  "width": "5%"
-						}
-					  ]
+						"type": "table",
+						"label": "Path Table",
+						"value": "pathtable",
+						"disable-sort": true,
+						"cols": 12,
+						"items": [
+							{
+								"text": "Path",
+								"type": "string",
+								"value": "path",
+								"align": "start",
+								"rules": [
+									"uniqueTableRule"
+								],
+								"sortable": true,
+								"divider": true,
+								"default": "new path",
+								"width": "19%"
+							},
+							{
+								"text": "Method",
+								"type": "select",
+								"select": [
+									"GET",
+									"POST"
+								],
+								"value": "method",
+								"align": "center",
+								"sortable": false,
+								"divider": true,
+								"width": "8%"
+							},
+							{
+								"text": "Convert",
+								"value": "convert",
+								"type": "textarea",
+								"align": "start",
+								"default": "$",
+								"sortable": true,
+								"divider": true,
+								"width": "60%"
+							},
+							{
+								"text": "Enabled",
+								"type": "checkbox",
+								"value": "enabled",
+								"sortable": false,
+								"align": "center",
+								"divider": true,
+								"width": "5%"
+							}
+						]
 					}
-				  ]
+				]
 			},
 			{
 				"label": "Contact",

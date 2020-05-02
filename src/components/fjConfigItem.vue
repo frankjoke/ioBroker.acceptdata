@@ -38,6 +38,7 @@
     v-else-if="cToolItem.type == 'select'"
     :items="cToolItem.select"
     dense
+    hide-details="auto"
     v-model="cItem[cToolItem.value]"
     v-bind="attrs()"
   />

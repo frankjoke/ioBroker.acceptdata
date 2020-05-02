@@ -20,7 +20,7 @@ const iobroker = {
       iobrokerLang: mylang || "en",
       iobrokerInstance: window.location.search.slice(1) || "0",
       iobrokerConfig: iopackage.native,
-      ioBrokerSystemConfig: {},
+      ioBrokerSystemConfig: null,
       iobrokerAdapter: iopackage.common.name,
       iobrokerPackage: packagej,
       iobrokerIoPackage: iopackage,
@@ -31,9 +31,10 @@ const iobroker = {
     };
   },
   sockets: {
-    async connect() {
+    connect() {
       this.socketConnected = true;
       this.iobrokerHostConnection = this.$socket.io.opts;
+      if (!this.ioBrokerSystemConfig) this.loadSystemConfig();
       this.$alert("socket connected...");
     },
 
@@ -95,12 +96,12 @@ const iobroker = {
       const oldV = this.copyObject(
         ict && ict.length ? ict : ipt && ipt.length ? ipt : []
       );
-      console.log(
-        "new config to translate:",
-        oldV,
-        this.iobrokerHostConnection.hostname,
-        this.iobrokerConfig.port
-      );
+      // console.log(
+      //   "new config to translate:",
+      //   oldV,
+      //   this.iobrokerHostConnection.hostname,
+      //   this.iobrokerConfig.port
+      // );
       const newV = [];
       for (const i of oldV) {
         if (devMode || !i.devOnly) newV.push(transl(i));
@@ -116,10 +117,14 @@ const iobroker = {
 
   beforeMount() {
     this.iobrokerHostConnection = this.$socket.io.opts;
+    if (this.$socket.connected && !this.ioBrokerSystemConfig)
+      this.loadSystemConfig();
+    console.log("beforeMount:", this.$socket);
   },
 
   async mounted() {
     this.iobrokerHostConnection = this.$socket.io.opts;
+    console.log("Mounted:", this.$socket);
     return this.loadIoBroker();
     /*     return this.loadSystemConfig()
           .then((_) => this.wait(10))
@@ -146,7 +151,7 @@ const iobroker = {
         return console.log(`No Adapterconfig received for ${id}!`), null;
       this.setIobrokerConfig(res.native);
       if (res.common) this.iobrokerAdapterCommon = res.common;
-      this.$alert("new config received");
+      //      this.$alert("new config received");
       await this.wait(10);
       this.$forceUpdate();
       return res;
@@ -194,8 +199,8 @@ const iobroker = {
         (await this.socketEmit("getObject", id).catch((e) =>
           console.log("GetAdapterConfig:", id, e)
         )) || {};
-      if (oldObj.native) oldObj.native = {};
-      else if (!common) return null;
+      if (!oldObj.native) oldObj.native = {};
+
       for (var a in native) {
         if (native.hasOwnProperty(a && a != "_configTool")) {
           oldObj.native[a] = native[a];
@@ -327,19 +332,38 @@ const iobroker = {
     },
 
     async loadSystemConfig() {
-      console.log("load system config");
-      let res = await this.socketEmit("system.config").then(
+      let counter = 10;
+      console.log("Will try to load systemconfig now ...");
+      while (counter)
+        try {
+          counter -= 1;
+          const res = await this.loadSystemConfigInner();
+          return res;
+        } catch (e) {
+          //          console.log("Retry load SystemConfig ", counter, e);
+        }
+      console.log("Could not load System config after 10 trials!");
+      return null;
+    },
+    async loadSystemConfigInner() {
+      let res = await this.socketEmit({
+        event: "system.config",
+        timeout: 1000,
+      }).then(
         (x) => x,
-        (e) => (console.log("system.config err:", e), null)
+        (e) => null
       );
       if (res && res.common) {
         this.ioBrokerSystemConfig = res;
         this.iobrokerLang = res.common.language || this.iobrokerLang;
         this.$i18n.locale = this.iobrokerLang;
-      }
-      res = await this.socketEmit("system.certificates").then(
+      } else return Promise.reject(null);
+      res = await this.socketEmit({
+        event: "system.certificates",
+        timeout: 1000,
+      }).then(
         (x) => x,
-        (e) => (console.log("system.certificates err", e), null)
+        (e) => null
       );
       if (res && res.native && res.native.certificates) {
         this.ioBrokerCerts = [];
