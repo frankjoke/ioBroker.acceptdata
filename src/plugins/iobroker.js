@@ -119,12 +119,12 @@ const iobroker = {
     this.iobrokerHostConnection = this.$socket.io.opts;
     if (this.$socket.connected && !this.ioBrokerSystemConfig)
       this.loadSystemConfig();
-    console.log("beforeMount:", this.$socket);
+    //    console.log("beforeMount:", this.$socket);
   },
 
   async mounted() {
     this.iobrokerHostConnection = this.$socket.io.opts;
-    console.log("Mounted:", this.$socket);
+    //    console.log("Mounted:", this.$socket);
     return this.loadIoBroker();
     /*     return this.loadSystemConfig()
           .then((_) => this.wait(10))
@@ -227,12 +227,30 @@ const iobroker = {
     },
 
     async closeAdapterConfig() {
+      function close() {
+        if (typeof parent !== "undefined" && parent) {
+          try {
+            if (
+              parent.$iframeDialog &&
+              typeof parent.$iframeDialog.close === "function"
+            ) {
+              parent.$iframeDialog.close();
+            } else {
+              parent.postMessage("close", "*");
+            }
+          } catch (e) {
+            parent.postMessage("close", "*");
+          }
+        }
+      }
       const res = this.iobrokerConfigChanged
         ? await this.$confirm(
             "okColor=error darken-2|Really exit without saving?"
           )
         : true;
-      if (res) this.$alert("close now " + res);
+      if (res)
+        if (this.devMode) this.$alert("would close now " + res);
+        else close();
       return res;
     },
 

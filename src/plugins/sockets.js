@@ -4,7 +4,7 @@ import VueSocketIO from "vue-socket.io";
 
 const devMode = process.env.NODE_ENV !== "production";
 var path = location.pathname;
-console.log(path);
+// console.log(path);
 var parts = path.split("/");
 parts.splice(-3);
 
