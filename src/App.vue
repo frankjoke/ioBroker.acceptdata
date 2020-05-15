@@ -13,11 +13,11 @@
           :alt="iobrokerAdapter"
           class="shrink mr-2"
           contain
-          src="../public/acceptdata.png"
+          :src="appIcon"
           width="35"
         />
         <fjB
-          :href="iobrokerAdapterCommon.readme"
+          :href="adapterReadme"
           target="_blank"
           text
           img="mdi-help-circle-outline"
@@ -63,7 +63,7 @@
       <fjB
         text
         small
-        @click.stop="saveAdapterConfig(null).then((_) => closeAdapterConfig())"
+        @click.stop="saveAdapterConfig(null).then(() => closeAdapterConfig())"
         :disabled="!iobrokerConfigChanged"
         dense
         tooltip="Save settings and close config"
@@ -142,6 +142,11 @@
         />
         <fjB
           class="ma-1"
+          :label="$tc('getEnv', 2)"
+          @click="setTmp(process.env)"
+        />
+        <fjB
+          class="ma-1"
           :label="$tc('getInterfaces', 2)"
           @click="getInterfaces().then((res) => setTmp(res))"
         />
@@ -156,40 +161,12 @@
           @click="$alert('0|error:Forever')"
         />
       </div>
-      <v-container fluid>
-        <v-row class="px-2">
-          <fjConfigElement
-            v-for="(item, index) in configPage.items"
-            v-bind:key="index"
-            :cItem="iobrokerConfig"
-            :cToolItem="item"
-          />
-          <!--       <v-divider class="pa-1"></v-divider>
-          <v-flex align-self-center class="pa-1" sm12>
-            <v-divider></v-divider>
-          </v-flex>
-          <v-spacer></v-spacer>
-          <v-flex align-self-center class="pa-1" sm3>
-            This is my Text
-          </v-flex>
-          <v-divider vertical class="pa-1"></v-divider>
-          <v-flex align-self-center class="pa-1" sm4>
-            This is my Text<br />sölasdöflaösdföadsfm aSD asd D ASDSD<br />
-            WSWLKASDÖLKASDÖFAÖSDF
-          </v-flex>
-          <v-divider vertical></v-divider>
-          <v-flex align-self-center class="pa-1" sm4>
-            This is my Text<br />sölasdöflaösdföadsfm aSD asd D ASDSD<br />
-            WSWLKASDÖLKASDÖFAÖSDF
-          </v-flex>
- -->
-        </v-row>
-      </v-container>
       <code
         v-if="devMode"
         class="error--text text--darken-4"
         v-text="tmptext"
       />
+      <fjConfigContainer :cItem="iobrokerConfig" :configPage="configPage" />
     </v-content>
     <fjConfirm />
   </v-app>
@@ -200,6 +177,7 @@
 
 import helper from "./plugins/helper";
 import ioBroker from "./plugins/iobroker";
+import iobroker from "./plugins/iobroker";
 
 const myCache = {};
 
@@ -221,14 +199,22 @@ export default {
 
   data: () => {
     return {
-      page: 0,
+      page: -1,
+      configPage: { items: [] },
+      adapterReadme: "",
       tmptext: "",
     };
   },
 
   //  created() {},
-  //  beforeMount() {},
-  //  async mounted() {},
+  async beforeMount() {
+    this.page = 0;
+    return await this.makeConfigPage(0);
+  },
+  async mounted() {
+    //    console.log(this.$i18n);
+    this.setAdapterReadme(this.iobrokerLang);
+  },
   //  filters: {},
 
   methods: {
@@ -240,16 +226,70 @@ export default {
       if (add) this.tmptext += "\n" + newT;
       else this.tmptext = "" + newT;
     },
-  },
 
-  computed: {
-    configPage() {
-      const cp = this.configTranslated[this.page];
-      return cp ? cp : { items: [] };
+    async setAdapterReadme(lang) {
+      const rm = this.iobrokerAdapterCommon.readme;
+      const lrm = rm.replace(
+        "README.md",
+        "README_" + lang.toLowerCase() + ".md"
+      );
+      let errr = false;
+      const url =
+        (lrm.startsWith("https")
+          ? "https://cors-anywhere.herokuapp.com/"
+          : "http://cors-anywhere.herokuapp.com/") + lrm;
+
+      try {
+        err = await fetch(url, { method: "HEAD" }).then(
+          (res) => (errr = !res.ok),
+          (err) => (err = true)
+        );
+      } catch (e) {
+        errr = true;
+      }
+      this.adapterReadme = errr ? rm : lrm;
+      return this.adapterReadme;
+    },
+
+    async makeConfigPage(page) {
+      const cp = Object.assign(
+        {},
+        this.copyObject(this.configTranslated[page] || {})
+      );
+      // console.log(
+      //   "MakeConfigPage:",
+      //   page,
+      //   this.configTranslated,
+      //   this.configTranslated[page]
+      // );
+      this.configPage = cp;
+      const items = cp.items;
+      this.$set(this.configPage, "items", []);
+      this.$set(this.configPage, "page", page);
+      for (const i in items) this.configPage.items.splice(i, 1, items[i]);
+      //      return this.wait(10).then(() => this.$forceUpdate());
+      //      console.log("MakeConfigPage:", this.configPage);
+      return this.configPage;
     },
   },
 
-  //  watch: {},
+  //  computed: {},
+
+  watch: {
+    page(newV) {
+      this.wait(10).then(() => this.makeConfigPage(Number(newV)));
+    },
+    configTranslated: {
+      handler: function () {
+        this.wait(10).then(() => this.makeConfigPage(Number(this.page)));
+      },
+      deep: true,
+    },
+    async iobrokerLang(newv) {
+      const readme = await this.setAdapterReadme(newv);
+      this.AdapterReadme = readme;
+    },
+  },
 };
 </script>
 <style scoped.vue>

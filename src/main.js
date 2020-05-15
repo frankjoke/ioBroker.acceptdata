@@ -3,12 +3,13 @@ import Vue from "vue";
 import vuetify from "./plugins/vuetify";
 import App from "./App.vue";
 //import VueChart from "@seregpie/vue-chart";
-import i18n from './i18n'
+import i18n from './plugins/i18n'
 
 import fjB from "./components/fjB";
 import fjAlerts from "./components/fjAlerts";
 import fjConfirm from "./components/fjConfirm"
 import fjConfigElement from "./components/fjConfigElement"
+import fjConfigContainer from "./components/fjConfigContainer"
 import fjFileLoadButton from "./components/fjFileLoadButton"
 import fjFileSaveButton from "./components/fjFileSaveButton"
 
@@ -16,6 +17,7 @@ Vue.component("fjB", fjB);
 Vue.component("fjAlerts", fjAlerts);
 Vue.component("fjConfirm", fjConfirm);
 Vue.component("fjConfigElement", fjConfigElement);
+Vue.component("fjConfigContainer", fjConfigContainer);
 Vue.component("fjFileLoadButton", fjFileLoadButton);
 Vue.component("fjFileSaveButton", fjFileSaveButton);
 
@@ -45,30 +47,57 @@ Vue.directive("t", {
 });
 */
 
-import Sockets from "./plugins/sockets";
+import VueClipboard from "vue-clipboard2";
+Vue.use(VueClipboard);
 
+import Sockets from "./plugins/sockets";
 Vue.use(Sockets, {});
 Vue.prototype.$alert = function (...args) {
   console.log(...args);
 };
 
-const missing = {};
-Vue.prototype.$missing = missing;
+Vue.mixin({
+  methods: {
+    copyObject(obj) {
+      return JSON.parse(this.myStringify(obj));
+    },
 
-i18n.missing = (lang, key, path) => {
-  //  if (i18n.te(key, i18n.fallbackLocale)) {
-  //    return i18n.t(key, i18n.fallbackLocale).toString();
-  //  }
-  //  
-  if (!missing[key] || missing[key].indexOf(lang) < 0) {
-//    console.log(`missing for lang (${lang}): '${key}'`);
-    if (missing[key])
-      missing[key].push(lang);
-    else
-      missing[key] = [lang];
-  }
-  return key; // instead of showing the key + warning
-};
+    myStringify(obj) {
+      let res;
+      try {
+        res = JSON.stringify(obj);
+      } catch (e) {
+        console.log("MyStringify error:", e);
+        res = "{}";
+      }
+      return res;
+    },
+
+    async wait(time, arg) {
+      time = Number(time) || 0;
+      if (isNaN(time) || time < 0) time = 0;
+      return await new Promise((resolve) =>
+        setTimeout(() => resolve(arg), time)
+      );
+    },
+
+    async pSequence(arr, promise, wait) {
+      wait = wait || 0;
+      if (!Array.isArray(arr) && typeof arr === "object")
+        arr = Object.entries(arr).filter((o) => arr.hasOwnProperty(o[0]));
+      const res = [];
+      for (let i of arr) {
+        if (res.length) await this.wait(wait);
+        try {
+          const r = await promise(i);
+          res.push(r);
+        } catch (e) {
+          res.push(e);
+        }
+      }
+      return res;
+    },
+  }});
 
 new Vue({
   vuetify,

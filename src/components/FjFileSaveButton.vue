@@ -5,10 +5,7 @@
 <script>
 import { saveAs } from "file-saver";
 import Vue from "vue";
-import VueClipboard from "vue-clipboard2";
 import fjB from "./fjB.vue";
-
-Vue.use(VueClipboard);
 
 export default {
   name: "fjFileSaveButton",

@@ -89,6 +89,8 @@
 				"enabled": true
 			}
 		],
+		"_translation": { "Port": { "de": "IP Port"}},
+		"_icon": "acceptdata.png",
 		"_configTool": [
 			{
 				"label": "Config",
@@ -100,7 +102,7 @@
 						"max": 65000,
 						"label": "Port",
 						"placeholder": "Enter port address on which iobroker will listen to your request",
-						"hint": "Port to listen on >1000 & <65000",
+						"hint": "Port to listen on >=1000 & <=65000",
 						"value": "port",
 						"sm3": true,
 						"prepend-icon": "mdi-home-import-outline",

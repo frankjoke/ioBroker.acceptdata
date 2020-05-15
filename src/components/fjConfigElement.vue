@@ -48,29 +48,42 @@ export default {
       default: () => ({}),
     },
   },
-  //  methods: {},
+  methods: {
+    makeItems() {
+      const nitem = this.copyObject(this.cToolItem);
+      let { ruler, cols, rcols } = nitem;
+      delete nitem.ruler;
+      delete nitem.cols;
+      this.nToolItem = nitem;
+      this.nCols = cols;
+      ruler =
+        ruler &&
+        ruler.split("|").map((item) => {
+          item =
+            (item &&
+              item
+                .trim()
+                .split("=")
+                .map((i) => i.trim())) ||
+            [];
+          if (item.length == 1) item.push(1);
+          return item;
+        });
+      this.nRuler = ruler || [];
+    },
+  },
+
+  watch: {
+    cToolItem: {
+      deep: true,
+      handler: function () {
+        this.makeItems();
+      },
+    },
+  },
   //  computed: {},
   created() {
-    const nitem = Object.assign({}, this.cToolItem);
-    let { ruler, cols, rcols } = nitem;
-    delete nitem.ruler;
-    delete nitem.cols;
-    this.nToolItem = nitem;
-    this.nCols = cols;
-    ruler =
-      ruler &&
-      ruler.split("|").map((item) => {
-        item =
-          (item &&
-            item
-              .trim()
-              .split("=")
-              .map((i) => i.trim())) ||
-          [];
-        if (item.length == 1) item.push(1);
-        return item;
-      });
-    this.nRuler = ruler || [];
+    this.makeItems();
   },
 };
 </script>

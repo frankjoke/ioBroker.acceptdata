@@ -213,7 +213,6 @@ class Acceptdata extends utils.Adapter {
 		*/
     // in this template all states changes inside the adapters namespace are subscribed
     this.subscribeStates("*");
-
     /*
 		setState examples
 		you will notice that each setState will cause the stateChange event to fire (because of above subscribeStates cmd)

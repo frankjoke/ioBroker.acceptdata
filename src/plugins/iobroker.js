@@ -26,7 +26,9 @@ const iobroker = {
       iobrokerIoPackage: iopackage,
       iobrokerAdapterCommon: iopackage.common,
       ioBrokerCerts: [],
+      configTranslated: [],
       socketConnected: false,
+      appIcon: "",
       devMode,
     };
   },
@@ -47,7 +49,7 @@ const iobroker = {
 
   computed: {
     ioBrokerCompareConfig() {
-      return JSON.stringify(this.iobrokerConfig);
+      return this.myStringify(this.iobrokerConfig);
     },
 
     iobrokerConfigChanged() {
@@ -58,61 +60,21 @@ const iobroker = {
       return this.iobrokerAdapter + "." + this.iobrokerInstance;
       //      return this.iobrokerInstance;
     },
-
-    configTranslated() {
-      const that = this;
-
-      function transl(o) {
-        const props = Object.getOwnPropertyNames(o);
-        for (const p of props)
-          if (
-            ["label", "text", "html", "tooltip", "placeholder", "hint"].indexOf(
-              p
-            ) >= 0
-          )
-            o[p] = that.$t(o[p]);
-        if (Array.isArray(o.items)) for (const i of o.items) transl(i);
-        if (o.eval) {
-          const $ = o;
-          const ft = o.eval.trim();
-          const fun = new Function(
-            "$",
-            ft.startsWith("{") ? ft : `return (${ft});`
-          );
-          try {
-            const res = fun.apply(that, [o]);
-          } catch (e) {
-            console.log("eval error in translation:", o, e, that);
-          }
-        }
-        return o;
-      }
-
-      const ict = this.iobrokerConfig && this.iobrokerConfig._configTool;
-      const ipt =
-        this.iopackage &&
-        this.iopackage.native &&
-        this.iopackage.native._configTool;
-      const oldV = this.copyObject(
-        ict && ict.length ? ict : ipt && ipt.length ? ipt : []
-      );
-      // console.log(
-      //   "new config to translate:",
-      //   oldV,
-      //   this.iobrokerHostConnection.hostname,
-      //   this.iobrokerConfig.port
-      // );
-      const newV = [];
-      for (const i of oldV) {
-        if (devMode || !i.devOnly) newV.push(transl(i));
-      }
-      return newV;
-    },
   },
 
-  //  watch: {},
+  watch: {
+    "iobrokerConfig._ConfigTool": {
+      handler: function () {
+        this.translateConfig(this.iobrokerConfig);
+      },
+      deep: true,
+    },
+  },
   created() {
     this.iobrokerInstance = window.location.search.slice(1) || "0";
+    this.iobrokerLang = this.$i18n.locale = (
+      navigator.language || navigator.userLanguage
+    ).slice(0, 2);
   },
 
   beforeMount() {
@@ -123,25 +85,87 @@ const iobroker = {
   },
 
   async mounted() {
-    this.iobrokerHostConnection = this.$socket.io.opts;
     //    console.log("Mounted:", this.$socket);
     return this.loadIoBroker();
     /*     return this.loadSystemConfig()
-          .then((_) => this.wait(10))
-          .then((_) => (this.iobrokerHostConnection = this.$socket.io.opts))
-          .then((_) => this.loadIoBroker());
+          .then(() => this.wait(10))
+          .then(() => (this.iobrokerHostConnection = this.$socket.io.opts))
+          .then(() => this.loadIoBroker());
      */
   },
 
   methods: {
-    copyObject(obj) {
-      return JSON.parse(JSON.stringify(obj));
+    translateConfig(conf) {
+      const that = this;
+
+      function transl(o) {
+        const props = Object.getOwnPropertyNames(o);
+        const n = {};
+        for (const p of props)
+          n[p] =
+            ["label", "text", "html", "tooltip", "placeholder", "hint"].indexOf(
+              p
+            ) >= 0
+              ? that.$t(o[p])
+              : o[p];
+        if (Array.isArray(n.items))
+          for (const i in n.items) n.items.slice(i, 1, transl(o.items[i]));
+        if (n.eval) {
+          const $ = n;
+          const ft = n.eval.trim();
+          const fun = new Function(
+            "$",
+            ft.startsWith("{") ? ft : `return (${ft});`
+          );
+          try {
+            const res = fun.apply(that, [n]);
+          } catch (e) {
+            console.log("eval error in translation:", n, e, that);
+          }
+        }
+        return n;
+      }
+
+      const ict = conf && conf._configTool;
+      const ipt = iopackage && iopackage.native && iopackage.native._configTool;
+      const trans =
+        (conf && conf._translation) ||
+        (iopackage && iopackage.native && iopackage.native._translation);
+      const oldV = this.copyObject(
+        ict && ict.length ? ict : ipt && ipt.length ? ipt : []
+      );
+
+      this.appIcon =
+        (conf && conf._icon) ||
+        (iopackage && iopackage.native && iopackage.native._icon);
+      // this.copyObject(
+      //      );
+      // console.log(
+      //   "new config to translate:",
+      //   oldV,
+      //   this.iobrokerHostConnection.hostname,
+      //   this.iobrokerConfig.port
+      // );
+      //      console.log(this.$i18n);
+      if (trans) {
+        const om = this.copyObject(this.$i18n.messages);
+        const nm = this.$i18n.loadLocaleMessages(trans, om);
+        for (const lang of Object.keys(nm))
+          this.$i18n.setLocaleMessage(lang, nm[lang]);
+      }
+      //      console.log("Port", this.$t("Port"));
+      this.$set(this, "configTranslated", []);
+      for (const i of oldV) {
+        if (devMode || !i.devOnly) this.configTranslated.push(transl(i));
+      }
+      //      console.log("TRanslatedConfig:", this.configTranslated);
+      return this.configTranslated;
     },
 
     setIobrokerConfig(conf) {
-      const js = JSON.stringify(conf || {});
-      this.iobrokerConfig = JSON.parse(js);
-      this.iobrokerConfigOrig = js;
+      const js = this.myStringify(conf || {});
+      this.$set(this, "iobrokerConfig", JSON.parse(js));
+      this.$set(this, "iobrokerConfigOrig", js);
     },
 
     async loadIoBroker() {
@@ -193,19 +217,14 @@ const iobroker = {
     },
 
     async saveAdapterConfig(common) {
-      const native = this.iobrokerConfig;
+      const native = this.copyObject(this.iobrokerConfig);
       const id = "system.adapter." + this.iobrokerAdapterInstance;
       const oldObj =
-        (await this.socketEmit("getObject", id).catch((e) =>
-          console.log("GetAdapterConfig:", id, e)
-        )) || {};
-      if (!oldObj.native) oldObj.native = {};
+        (await this.socketEmit("getObject", id).catch((e) => null)) || {};
+      if (!oldObj.native) return false;
 
-      for (var a in native) {
-        if (native.hasOwnProperty(a && a != "_configTool")) {
-          oldObj.native[a] = native[a];
-        }
-      }
+      for (var a of Object.getOwnPropertyNames(native))
+        if (a && a != "_configTool") oldObj.native[a] = native[a];
 
       if (common)
         for (var b in Object.getOwnPropertyNames(common))
@@ -216,8 +235,10 @@ const iobroker = {
         oldObj.configTool = [...this.configTool];
       }
  */
+
+      //      console.log("Save ", id, oldObj);
       await this.socketEmit("setObject", id, oldObj).then(
-        (_) => this.$alert("config saved"),
+        () => this.$alert("config saved"),
         (e) => this.$alert("error:Save config error " + e)
       );
 
@@ -226,7 +247,7 @@ const iobroker = {
       return true;
     },
 
-    async closeAdapterConfig() {
+    async closeAdapterConfig(event) {
       function close() {
         if (typeof parent !== "undefined" && parent) {
           try {
@@ -242,6 +263,10 @@ const iobroker = {
             parent.postMessage("close", "*");
           }
         }
+      }
+      if (event.altKey && event.shiftKey) {
+        this.$copyText(JSON.stringify(this.$missing, null, 2));
+        return this.$alert("Missing words saved to clipboard!");
       }
       const res = this.iobrokerConfigChanged
         ? await this.$confirm(
@@ -376,6 +401,7 @@ const iobroker = {
         this.iobrokerLang = res.common.language || this.iobrokerLang;
         this.$i18n.locale = this.iobrokerLang;
       } else return Promise.reject(null);
+
       res = await this.socketEmit({
         event: "system.certificates",
         timeout: 1000,

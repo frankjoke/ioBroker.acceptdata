@@ -55,31 +55,6 @@ const helper = {
       return Promise.resolve(val);
     },
 
-    async wait(time, arg) {
-      time = Number(time) || 0;
-      if (isNaN(time) || time < 0) time = 0;
-      return await new Promise((resolve) =>
-        setTimeout(() => resolve(arg), time)
-      );
-    },
-
-    async pSequence(arr, promise, wait) {
-      wait = wait || 0;
-      if (!Array.isArray(arr) && typeof arr === "object")
-        arr = Object.entries(arr).filter((o) => arr.hasOwnProperty(o[0]));
-      const res = [];
-      for (let i of arr) {
-        if (res.length) await this.wait(wait);
-        try {
-          const r = await promise(i);
-          res.push(r);
-        } catch (e) {
-          res.push(e);
-        }
-      }
-      return res;
-    },
-
     numberFormat(val, ...args) {
       if (
         this.$options &&
