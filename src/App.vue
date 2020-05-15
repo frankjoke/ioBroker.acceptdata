@@ -13,7 +13,7 @@
           :alt="iobrokerAdapter"
           class="shrink mr-2"
           contain
-          :src="appIcon"
+          src="../public/icon.png"
           width="35"
         />
         <fjB
@@ -240,9 +240,9 @@ export default {
           : "http://cors-anywhere.herokuapp.com/") + lrm;
 
       try {
-        err = await fetch(url, { method: "HEAD" }).then(
+        errr = await fetch(url, { method: "HEAD" }).then(
           (res) => (errr = !res.ok),
-          (err) => (err = true)
+          () => (errr = true)
         );
       } catch (e) {
         errr = true;
