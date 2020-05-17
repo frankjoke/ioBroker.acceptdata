@@ -151,7 +151,7 @@ export default {
           text: "Edit",
           value: "-",
           align: "center",
-          width: this.searchDisabled ? "10%" : "5%",
+          width: this.searchDisabled ? "8%" : "4%",
         },
       ];
     },

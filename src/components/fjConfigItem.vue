@@ -6,7 +6,11 @@
   </v-flex>
   <v-flex v-else-if="cToolItem.type == 'html'" v-bind="attrs('text,label')">
     <div v-if="cToolItem.label" v-text="cToolItem.label" class="subtitle-2" />
-    <div v-if="Array.isArray(cToolItem.text)" v-html="cToolItem.text.join('<br>')" class="caption" />
+    <div
+      v-if="Array.isArray(cToolItem.text)"
+      v-html="cToolItem.text.join('<br>')"
+      class="caption"
+    />
     <div v-else v-html="cToolItem.text" class="caption" />
   </v-flex>
   <v-text-field
@@ -79,7 +83,9 @@
     v-model="cItem[cToolItem.value]"
     v-bind="attrs()"
   />
-  <div v-else v-bind="attrs()">{{ cToolItem }} {{ cToolItem.value ? cItem[cToolItem.value] : "" }}</div>
+  <div v-else v-bind="attrs()">
+    {{ cToolItem }} {{ cToolItem.value ? cItem[cToolItem.value] : "" }}
+  </div>
 </template>
 
 <script>
@@ -136,49 +142,47 @@ export default {
     },
 
     uniqueTableRule(val) {
-      const { items, index, column } = this.cTable;
+      const { items } = this.cTable;
       const v = ("" + val).trim();
       const vp = column.value;
-      const found = items.filter(
-        (i, ind) => ind != index && ("" + i[vp]).trim() == v
-      );
+      const found = items.filter((i, ind) => ("" + i[vp]).trim() == v);
       return (
-        !found.length || "This item can only be once per table in this field!"
+        found.length <= 1 ||
+        "This item can only be once per table in this field!"
       );
     },
 
-    stringToArrayWith($, what) {
+    stringToArrayWith(item, value, what) {
       what = what || ",";
-      if (typeof $.value[$.item.value] === 'string') {
-        const ret = $.value[$.item.value].split(',').map(i => i.trim());
-        if (ret.length == 1 && !ret[0])
-          ret.splice(0,1);
-        $.value[$.item.value] = ret;
+      if (typeof value[item.value] === "string") {
+        const ret = value[item.value].split(",").map((i) => i.trim());
+        if (ret.length == 1 && !ret[0]) ret.splice(0, 1);
+        value[item.value] = ret;
       }
     },
 
     attrs(remove) {
       const rem = ["type", "value", "attrs", "min", "max", "convertold"];
 
-      function makeFunction(rule, that) {
-           that = that || {};
-          if (typeof rule == "function") return rule;
-          else if (typeof rule == "string" && rule.trim()) {
-            rule = rule.trim();
-            if (typeof that[rule] == "function")
-              return that[rule].bind(that);
-            else try {
+      function makeFunction(rule, that, args) {
+        that = that || {};
+        if (typeof rule == "function") return rule;
+        else if (typeof rule == "string" && rule.trim()) {
+          rule = rule.trim();
+          if (typeof that[rule] == "function") return that[rule].bind(that);
+          else
+            try {
               return new Function(
-                  "$",
-                  rule.startsWith("return ") || rule.startsWith("{")
-                    ? rule
-                    : `return ${rule};`
-                );
+                ...args,
+                rule.startsWith("return ") || rule.startsWith("{")
+                  ? rule
+                  : `return ${rule};`
+              );
             } catch (e) {
-              console.log(` error ${e} in function generation with: ${rule}`)
+              console.log(` error ${e} in function generation with: ${rule}`);
             }
-          }
-          return null;
+        }
+        return null;
       }
 
       if (remove) {
@@ -195,20 +199,32 @@ export default {
         this.cToolItem.attrs ? this.cToolItem.attrs : { class: "pa-1" },
         this.cToolItem
       );
-      if (this.cToolItem.convertold && typeof this.cToolItem.convertold !== "function") 
-        this.cToolItem.convertold = makeFunction(this.cToolItem.convertold, this);
-      
-      if (typeof this.cToolItem.convertold == "function") try {
-        this.cToolItem.convertold({item: this.cToolItem, value: this.cItem});        
-      } catch(e) {
-        console.log(`error ${e} in conversion function of item ${JSON.stringify(this.cToolItem)}`);
-      }
+      if (
+        this.cToolItem.convertold &&
+        typeof this.cToolItem.convertold !== "function"
+      )
+        this.cToolItem.convertold = makeFunction(
+          this.cToolItem.convertold,
+          this,
+          ["item", "value"]
+        );
+
+      if (typeof this.cToolItem.convertold == "function")
+        try {
+          this.cToolItem.convertold(this.cToolItem, this.cItem);
+        } catch (e) {
+          console.log(
+            `error ${e} in conversion function of item ${JSON.stringify(
+              this.cToolItem
+            )}`
+          );
+        }
       const rules = nattr.rules;
       const nrules = [];
       if (rules && rules.length) {
         for (let i in rules) {
-          const rule = makeFunction(rules[i], this);
-          if (rule) nrules.push(rule); 
+          const rule = makeFunction(rules[i], this, ["$"]);
+          if (rule) nrules.push(rule);
         }
         nattr.rules = nrules;
       }

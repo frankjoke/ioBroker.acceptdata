@@ -44,6 +44,11 @@
                     "cols": 4
                 },
                 {
+                    "type": "switch",
+                    "value": "test",
+                    "convertold": "value[item.value] = typeof value[item.value] !== 'boolean' ? true : !!value[item.value]" 
+                },
+                {
                     "type": "html",
                     "label": "For Convert field:",
                     "text": [
@@ -108,7 +113,7 @@
                             "sortable": false,
                             "align": "center",
                             "divider": true,
-                            "width": "50px"
+                            "width": "45px"
                         }
                     ]
                 }
