@@ -1,6 +1,6 @@
 //import Vue from "vue";
-import packagej from "../../package.json";
-import iopackage from "../../io-package.json";
+// import packagej from "../../package.json";
+// import iopackage from "../../io-package.json";
 //import { runInThisContext } from "vm";
 
 // var path = location.pathname;
@@ -8,9 +8,18 @@ import iopackage from "../../io-package.json";
 // parts.splice(-3);
 // var instance = window.location.search;
 const devMode = process.env.NODE_ENV !== "production";
+const inst = window.location.search.slice(1) || "0";
+var aname = window.location.pathname.split("/");
+aname = aname[aname.length - 2];
+if (aname === "" && process.env.VUE_APP_ADAPTERNAME)
+  aname = process.env.VUE_APP_ADAPTERNAME;
+
+//console.log(process.env, inst, aname);
 
 //console.log(process.env);
 const mylang = (navigator.language || navigator.userLanguage).slice(0, 2);
+const myCache = {};
+
 const iobroker = {
   data() {
     return {
@@ -18,17 +27,19 @@ const iobroker = {
       iobrokerHost: "",
       iobrokerHostConnection: {},
       iobrokerLang: mylang || "en",
-      iobrokerInstance: window.location.search.slice(1) || "0",
-      iobrokerConfig: iopackage.native,
+      iobrokerInstance: inst,
+      iobrokerConfigFile: {},
+      iobrokerConfig: {}, //iopackage.native,
       ioBrokerSystemConfig: null,
-      iobrokerAdapter: iopackage.common.name,
-      iobrokerPackage: packagej,
-      iobrokerIoPackage: iopackage,
-      iobrokerAdapterCommon: iopackage.common,
+      iobrokerAdapter: aname, // iopackage.common.name,
+      iobrokerPackage: {}, // packagej,
+      iobrokerIoPackage: {}, //iopackage,
+      iobrokerAdapterCommon: {}, // iopackage.common,
       ioBrokerCerts: [],
       configTranslated: [],
       socketConnected: false,
-      appIcon: "",
+      iobrokerReadme: "",
+      adapterIcon: "",
       devMode,
     };
   },
@@ -63,18 +74,30 @@ const iobroker = {
   },
 
   watch: {
-    "iobrokerConfig._ConfigTool": {
+    iobrokerConfigFile: {
       handler: function () {
-        this.translateConfig(this.iobrokerConfig);
+        this.translateConfig(this.iobrokerConfigFile);
       },
       deep: true,
     },
+    async iobrokerLang(newv) {
+      const readme = await this.setAdapterReadme(
+        newv,
+        this.iobrokerAdapterCommon
+      );
+      this.iobrokerReadme = readme;
+    },
+    async iobrokerAdapterCommon(newv) {
+      const readme = await this.setAdapterReadme(this.iobrokerLang, newv);
+      this.iobrokerReadme = readme;
+    },
   },
-  created() {
+  async created() {
     this.iobrokerInstance = window.location.search.slice(1) || "0";
     this.iobrokerLang = this.$i18n.locale = (
       navigator.language || navigator.userLanguage
     ).slice(0, 2);
+    await this.loadConfigFile();
   },
 
   beforeMount() {
@@ -86,7 +109,10 @@ const iobroker = {
 
   async mounted() {
     //    console.log("Mounted:", this.$socket);
-    return this.loadIoBroker();
+    await this.loadIoBroker();
+    await this.wait(5);
+    this.setAdapterReadme(this.iobrokerLang, this.iobrokerAdapterCommon);
+
     /*     return this.loadSystemConfig()
           .then(() => this.wait(10))
           .then(() => (this.iobrokerHostConnection = this.$socket.io.opts))
@@ -95,6 +121,33 @@ const iobroker = {
   },
 
   methods: {
+    async loadConfigFile() {
+      let config = null;
+      try {
+        config = await fetch("./config.json")
+          .then((res) => {
+            // console.log("fetcher config.json", res);
+            return res.json();
+          })
+          .catch((err) => (console.log("config.json fetch err", err), null));
+      } catch (e) {
+        console.log("config.json fetch err", e);
+      }
+      if (config) {
+        this.iobrokerConfigFile = config;
+        this.adapterIcon = config.icon;
+      }
+    },
+
+    setAdapterReadme(lang, common) {
+      let rm = common.readme;
+      if (!rm) return "";
+      const crm = this.iobrokerConfigFile.readme;
+      if (crm && crm[lang]) rm = rm.replace("README.md", crm[lang]);
+      this.iobrokerReadme = rm;
+      return rm;
+    },
+
     translateConfig(conf) {
       const that = this;
 
@@ -126,18 +179,13 @@ const iobroker = {
         return n;
       }
 
-      const ict = conf && conf._configTool;
-      const ipt = iopackage && iopackage.native && iopackage.native._configTool;
-      const trans =
-        (conf && conf._translation) ||
-        (iopackage && iopackage.native && iopackage.native._translation);
-      const oldV = this.copyObject(
-        ict && ict.length ? ict : ipt && ipt.length ? ipt : []
-      );
+      const ict = conf && conf.configTool;
+      if (!ict) return [];
+      const iopackage = this.iobrokerAdapterCommon;
+      const trans = conf && conf.translation;
+      const oldV = this.copyObject(ict && ict.length ? ict : []);
 
-      this.appIcon =
-        (conf && conf._icon) ||
-        (iopackage && iopackage.native && iopackage.native._icon);
+      // this.adapterIcon = iopackage && iopackage.icon;
       // this.copyObject(
       //      );
       // console.log(
@@ -216,15 +264,31 @@ const iobroker = {
       return host;
     },
 
+    getLocalTime(time) {
+      const d = new Date(time || Date.now());
+      const diff = d.getTimezoneOffset();
+      return new Date(d.getTime() - diff * 60 * 1000).toISOString();
+    },
+
+    iobrokerConfigD() {
+      const conf = this.copyObject(this.iobrokerConfig);
+      conf._adapter_info_ = {
+        time: this.getLocalTime(),
+        instance: this.iobrokerAdapterInstance,
+        version: this.iobrokerAdapterCommon.version,
+        host: this.iobrokerAdapterCommon.host,
+      };
+      return conf;
+    },
+
     async saveAdapterConfig(common) {
       const native = this.copyObject(this.iobrokerConfig);
       const id = "system.adapter." + this.iobrokerAdapterInstance;
       const oldObj =
         (await this.socketEmit("getObject", id).catch((e) => null)) || {};
       if (!oldObj.native) return false;
-
       for (var a of Object.getOwnPropertyNames(native))
-        if (a && a != "_configTool") oldObj.native[a] = native[a];
+        if (a && a != "_adapter_info_") oldObj.native[a] = native[a];
 
       if (common)
         for (var b in Object.getOwnPropertyNames(common))
@@ -376,7 +440,7 @@ const iobroker = {
 
     async loadSystemConfig() {
       let counter = 10;
-      console.log("Will try to load systemconfig now ...");
+      // console.log("Will try to load systemconfig now ...");
       while (counter)
         try {
           counter -= 1;
@@ -388,6 +452,7 @@ const iobroker = {
       console.log("Could not load System config after 10 trials!");
       return null;
     },
+    
     async loadSystemConfigInner() {
       let res = await this.socketEmit({
         event: "system.config",

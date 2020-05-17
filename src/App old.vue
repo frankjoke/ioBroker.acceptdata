@@ -88,6 +88,90 @@
     </v-app-bar>
 
     <v-content id="MyAppContent" class="flex-wrap">
+      <div v-if="devMode">
+        <fjB
+          class="ma-1"
+          label="getEnums"
+          @click="getEnums('').then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          label="getGroups"
+          @click="getGroups().then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          label="getUsers"
+          @click="getUsers().then((res) => setTmp(res))"
+        />
+        <fjB class="ma-1" label="config" @click="setTmp(iobrokerConfig)" />
+        <fjB
+          class="ma-1"
+          label="configTranslated"
+          @click="setTmp(configTranslated)"
+        />
+        <fjB
+          class="ma-1"
+          label="getExtendableInstances"
+          @click="getExtendableInstances().then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          label="getAdapterInstances"
+          @click="getAdapterInstances().then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          label="getState"
+          @click="
+            getState('acceptdata.0.Test.speed').then((res) => setTmp(res))
+          "
+        />
+        <fjB
+          class="ma-1"
+          label="getObject"
+          @click="
+            getObject('acceptdata.0.Test.temp').then((res) => setTmp(res))
+          "
+        />
+        <fjB
+          class="ma-1"
+          label="getHost"
+          @click="
+            getHost(iobrokerAdapterCommon.host).then((res) => setTmp(res))
+          "
+        />
+        <fjB
+          class="ma-1"
+          :label="$tc('getMissing', 2)"
+          @click="setTmp($missing)"
+        />
+        <fjB
+          class="ma-1"
+          :label="$tc('getEnv', 2)"
+          @click="setTmp(process.env)"
+        />
+        <fjB
+          class="ma-1"
+          :label="$tc('getInterfaces', 2)"
+          @click="getInterfaces().then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          :label="$tc('loadSystemConfig', 2)"
+          @click="loadSystemConfig().then((res) => setTmp(res))"
+        />
+        <fjB
+          class="ma-1"
+          label="alerttest"
+          @click="$alert('0|error:Forever')"
+        />
+      </div>
+      <code
+        v-if="devMode"
+        class="error--text text--darken-4"
+        v-text="tmptext"
+      />
       <fjConfigContainer :cItem="iobrokerConfig" :configPage="configPage" />
     </v-content>
     <fjConfirm />
@@ -121,7 +205,7 @@ export default {
     return {
       page: -1,
       configPage: { items: [] },
-//      tmptext: "",
+      tmptext: "",
     };
   },
 
@@ -134,14 +218,14 @@ export default {
   //  filters: {},
 
   methods: {
-    // setTmp(res, add) {
-    //   const newT =
-    //     typeof res == "number" || typeof res == "string"
-    //       ? res
-    //       : JSON.stringify(res, null, 2);
-    //   if (add) this.tmptext += "\n" + newT;
-    //   else this.tmptext = "" + newT;
-    // },
+    setTmp(res, add) {
+      const newT =
+        typeof res == "number" || typeof res == "string"
+          ? res
+          : JSON.stringify(res, null, 2);
+      if (add) this.tmptext += "\n" + newT;
+      else this.tmptext = "" + newT;
+    },
 
     async makeConfigPage(page) {
       const cp = Object.assign(
