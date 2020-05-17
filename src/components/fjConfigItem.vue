@@ -142,10 +142,10 @@ export default {
     },
 
     uniqueTableRule(val) {
-      const { items } = this.cTable;
+      const { items, column } = this.cTable;
       const v = ("" + val).trim();
       const vp = column.value;
-      const found = items.filter((i, ind) => ("" + i[vp]).trim() == v);
+      const found = items.filter((i) => ("" + i[vp]).trim() == v);
       return (
         found.length <= 1 ||
         "This item can only be once per table in this field!"
