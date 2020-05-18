@@ -44,7 +44,9 @@
         icon
         small
         text
-        tooltip="Download Config JSON or shift-click to copy to clipboard"
+        :tooltip="
+          $t('Download Config JSON or shift-click to copy to clipboard')
+        "
         img="mdi-briefcase-download"
       />
       <fjFileLoadButton
@@ -52,18 +54,18 @@
         text
         icon
         small
-        tooltip="Upload Config JSON or drop config file here"
+        :tooltip="$t('Upload Config JSON or drop config file here')"
         img="mdi-briefcase-upload"
-        message="Loaded config!"
+        :message="$t('Loaded config!')"
       />
       <fjB
         text
         :disabled="!iobrokerConfigChanged"
         small
         @click.stop="saveAdapterConfig(null)"
-        label="Save"
+        :label="$t('Save')"
         img="mdi-content-save"
-        tooltip="Save current config"
+        :tooltip="$t('Save current config')"
       />
       <fjAlerts :offsetX="0" :offsetY="20" />
       <fjB
@@ -72,16 +74,16 @@
         @click.stop="saveAdapterConfig(null).then(() => closeAdapterConfig())"
         :disabled="!iobrokerConfigChanged"
         dense
-        tooltip="Save settings and close config"
-        label="Save&Close"
+        :tooltip="$t('Save settings and close config')"
+        :label="$t('Save&Close')"
         img="mdi-content-save-move"
       />
       <fjB
         text
         small
         dense
-        tooltip="cancel and close config"
-        label="Cancel"
+        :tooltip="$t('cancel and close config')"
+        :label="$t('Cancel')"
         img="mdi-close"
         @click.stop="closeAdapterConfig"
       />
@@ -121,7 +123,7 @@ export default {
     return {
       page: -1,
       configPage: { items: [] },
-//      tmptext: "",
+      //      tmptext: "",
     };
   },
 

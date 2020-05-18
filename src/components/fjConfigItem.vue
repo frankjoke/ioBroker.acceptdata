@@ -6,11 +6,7 @@
   </v-flex>
   <v-flex v-else-if="cToolItem.type == 'html'" v-bind="attrs('text,label')">
     <div v-if="cToolItem.label" v-text="cToolItem.label" class="subtitle-2" />
-    <div
-      v-if="Array.isArray(cToolItem.text)"
-      v-html="cToolItem.text.join('<br>')"
-      class="caption"
-    />
+    <div v-if="Array.isArray(cToolItem.text)" v-html="cToolItem.text.join('<br>')" class="caption" />
     <div v-else v-html="cToolItem.text" class="caption" />
   </v-flex>
   <v-text-field
@@ -83,9 +79,7 @@
     v-model="cItem[cToolItem.value]"
     v-bind="attrs()"
   />
-  <div v-else v-bind="attrs()">
-    {{ cToolItem }} {{ cToolItem.value ? cItem[cToolItem.value] : "" }}
-  </div>
+  <div v-else v-bind="attrs()">{{ cToolItem }} {{ cToolItem.value ? cItem[cToolItem.value] : "" }}</div>
 </template>
 
 <script>
@@ -164,27 +158,6 @@ export default {
     attrs(remove) {
       const rem = ["type", "value", "attrs", "min", "max", "convertold"];
 
-      function makeFunction(rule, that, args) {
-        that = that || {};
-        if (typeof rule == "function") return rule;
-        else if (typeof rule == "string" && rule.trim()) {
-          rule = rule.trim();
-          if (typeof that[rule] == "function") return that[rule].bind(that);
-          else
-            try {
-              return new Function(
-                ...args,
-                rule.startsWith("return ") || rule.startsWith("{")
-                  ? rule
-                  : `return ${rule};`
-              );
-            } catch (e) {
-              console.log(` error ${e} in function generation with: ${rule}`);
-            }
-        }
-        return null;
-      }
-
       if (remove) {
         if (typeof remove === "string")
           rem.push(...remove.split(",").map((i) => i.trim()));
@@ -194,21 +167,45 @@ export default {
         //     "warning:using wrong attrs(arg):" + JSON.stringify(remove)
         //   );
       }
-      const nattr = Object.assign(
-        {},
-        this.cToolItem.attrs ? this.cToolItem.attrs : { class: "pa-1" },
-        this.cToolItem
-      );
       if (
         this.cToolItem.convertold &&
         typeof this.cToolItem.convertold !== "function"
       )
-        this.cToolItem.convertold = makeFunction(
+        this.cToolItem.convertold = this.makeFunction(
           this.cToolItem.convertold,
           this,
-          ["item", "value"]
+          "item",
+          "conf"
         );
+      if (
+        typeof this.cToolItem.eval == "string" &&
+        this.cToolItem.eval.trim()
+      ) {
+        const fun = this.makeFunction(
+          this.cToolItem.eval.trim(),
+          this,
+          "item",
+          "conf"
+        );
+        // console.log(nitem.eval);
+        // debugger;
+        try {
+          const res = fun(this.cToolItem, this.cItem);
+          // console.log(nitem);
+        } catch (e) {
+          console.log("eval error in translation:", nitem, e, this);
+        }
+      }
 
+      if (
+        typeof this.cToolItem.disabled === "string" &&
+        this.cToolItem.disabled.length > 1
+      )
+        this.cToolItem.disabled = this.makeFunction(
+          this.cToolItem.disabled,
+          null,
+          "conf"
+        );
       if (typeof this.cToolItem.convertold == "function")
         try {
           this.cToolItem.convertold(this.cToolItem, this.cItem);
@@ -219,11 +216,19 @@ export default {
             )}`
           );
         }
+      const nattr = Object.assign(
+        {},
+        this.cToolItem.attrs ? this.cToolItem.attrs : { class: "pa-1" },
+        this.cToolItem
+      );
+      if (typeof nattr.disabled == "function")
+        nattr.disabled = nattr.disabled(this.cItem);
+
       const rules = nattr.rules;
       const nrules = [];
       if (rules && rules.length) {
         for (let i in rules) {
-          const rule = makeFunction(rules[i], this, ["$"]);
+          const rule = this.makeFunction(rules[i], this, "$");
           if (rule) nrules.push(rule);
         }
         nattr.rules = nrules;

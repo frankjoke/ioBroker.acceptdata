@@ -1,4 +1,4 @@
-//import Vue from "vue";
+import Vue from "vue";
 // import packagej from "../../package.json";
 // import iopackage from "../../io-package.json";
 //import { runInThisContext } from "vm";
@@ -93,6 +93,7 @@ const iobroker = {
     },
   },
   async created() {
+    Vue.prototype.$ioBroker = this;
     this.iobrokerInstance = window.location.search.slice(1) || "0";
     this.iobrokerLang = this.$i18n.locale = (
       navigator.language || navigator.userLanguage
@@ -155,27 +156,17 @@ const iobroker = {
         const props = Object.getOwnPropertyNames(o);
         const n = {};
         for (const p of props)
-          n[p] =
+          if (
             ["label", "text", "html", "tooltip", "placeholder", "hint"].indexOf(
               p
             ) >= 0
-              ? that.$t(o[p])
-              : o[p];
-        if (Array.isArray(n.items))
-          for (const i in n.items) n.items.slice(i, 1, transl(o.items[i]));
-        if (n.eval) {
-          const $ = n;
-          const ft = n.eval.trim();
-          const fun = new Function(
-            "$",
-            ft.startsWith("{") ? ft : `return (${ft});`
-          );
-          try {
-            const res = fun.apply(that, [n]);
-          } catch (e) {
-            console.log("eval error in translation:", n, e, that);
-          }
-        }
+          ) {
+            if (Array.isArray(o[p])) n[p] = o[p].map((s) => that.$t(s));
+            else n[p] = that.$t(o[p]);
+          } else n[p] = o[p];
+
+        if (Array.isArray(n.items)) n.items = n.items.map((i) => transl(i));
+        //          for (const i in n.items) n.items.slice(i, 1, transl(o.items[i]));
         return n;
       }
 
@@ -452,7 +443,7 @@ const iobroker = {
       console.log("Could not load System config after 10 trials!");
       return null;
     },
-    
+
     async loadSystemConfigInner() {
       let res = await this.socketEmit({
         event: "system.config",

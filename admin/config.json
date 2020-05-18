@@ -28,7 +28,7 @@
                         "<a target='_blank' rel='noopener noreferrer' href='http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>"
                     ],
                     "style": "width='98%'",
-                    "eval": "{for (i in $.text) $.text[i] = $.text[i].replace(/myhost:/g,this.iobrokerHostConnection ? this.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${this.iobrokerConfig.port}/`)}",
+                    "eval": "{for (i in item.text) item.text[i] = item.text[i].replace(/myhost:/g,this.$ioBroker.iobrokerHostConnection ? this.$ioBroker.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${conf.port}/`)}",
                     "cols": 8
                 },
                 {
@@ -40,13 +40,14 @@
                         "<button onclick=\"location.href='http://www.example.com'\" type=\"button\">www.example.com</button>"
                     ],
                     "style": "width='98%'",
-                    "eval": "{for (i in $.text) $.text[i] = $.text[i].replace(/myhost:/g,this.iobrokerHostConnection ? this.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${this.iobrokerConfig.port}/`)}",
+                    "eval": "{for (i in item.text) item.text[i] = item.text[i].replace(/myhost:/g,this.$ioBroker.iobrokerHostConnection ? this.$ioBroker.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${conf.port}/`)}",
                     "cols": 4
                 },
                 {
                     "type": "switch",
                     "value": "test",
-                    "convertold": "value[item.value] = typeof value[item.value] !== 'boolean' ? true : !!value[item.value]" 
+                    "convertold": "conf[item.value] = typeof conf[item.value] !== 'boolean' ? true : !!conf[item.value]",
+                    "disabled": "conf.port > 10000"
                 },
                 {
                     "type": "html",

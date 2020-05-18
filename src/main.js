@@ -73,6 +73,28 @@ Vue.mixin({
       return res;
     },
 
+    makeFunction(rule, that, ...args) {
+      that = that || this;
+
+      if (typeof rule == "function") return rule;
+      else if (Array.isArray(rule)) {
+        rule = rule.map(i => i.trim());
+      } else if (typeof rule == "string" && rule.trim()) {
+        if (typeof that[rule] == "function") return that[rule].bind(that);
+        rule = [...args, rule.trim()];
+        try {
+          let b = rule[rule.length-1];
+          b = b.startsWith("return ") || b.startsWith("{") ? b : `return ${b};`
+          rule[rule.length-1] = b;
+          const f = new Function(...rule);
+          return f.bind(that);
+        } catch (e) {
+          console.log(`makeFunction error ${e} in function generation with: ${rule}`);
+        }
+      } else console.log("makeFunction - Invalid function content in rule:", rule);
+      return null;
+    },
+
     async wait(time, arg) {
       time = Number(time) || 0;
       if (isNaN(time) || time < 0) time = 0;
@@ -97,7 +119,8 @@ Vue.mixin({
       }
       return res;
     },
-  }});
+  }
+});
 
 new Vue({
   vuetify,
