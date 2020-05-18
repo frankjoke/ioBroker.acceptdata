@@ -101,9 +101,8 @@
 
 import helper from "./plugins/helper";
 import ioBroker from "./plugins/iobroker";
-import iobroker from "./plugins/iobroker";
 
-let what = null;
+// let what = null;
 // console.log(process.env);
 /*
 function fix(number, digits, min, max) {

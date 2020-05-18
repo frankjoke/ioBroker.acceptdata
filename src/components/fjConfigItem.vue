@@ -6,7 +6,11 @@
   </v-flex>
   <v-flex v-else-if="cToolItem.type == 'html'" v-bind="attrs('text,label')">
     <div v-if="cToolItem.label" v-text="cToolItem.label" class="subtitle-2" />
-    <div v-if="Array.isArray(cToolItem.text)" v-html="cToolItem.text.join('<br>')" class="caption" />
+    <div
+      v-if="Array.isArray(cToolItem.text)"
+      v-html="cToolItem.text.join('<br>')"
+      class="caption"
+    />
     <div v-else v-html="cToolItem.text" class="caption" />
   </v-flex>
   <v-text-field
@@ -79,7 +83,9 @@
     v-model="cItem[cToolItem.value]"
     v-bind="attrs()"
   />
-  <div v-else v-bind="attrs()">{{ cToolItem }} {{ cToolItem.value ? cItem[cToolItem.value] : "" }}</div>
+  <div v-else v-bind="attrs()">
+    {{ cToolItem }} {{ cToolItem.value ? cItem[cToolItem.value] : "" }}
+  </div>
 </template>
 
 <script>

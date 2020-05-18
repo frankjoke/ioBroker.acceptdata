@@ -48,12 +48,12 @@ const iobroker = {
       this.socketConnected = true;
       this.iobrokerHostConnection = this.$socket.io.opts;
       if (!this.ioBrokerSystemConfig) this.loadSystemConfig();
-      this.$alert("socket connected...");
+      // this.$alert("socket connected...");
     },
 
     disconnected() {
       this.socketConnected = true;
-      this.$alert("Socket disconnected. try to reconnect...");
+      // this.$alert("Socket disconnected. try to reconnect...");
       this.$socket.open();
     },
   },
@@ -293,8 +293,8 @@ const iobroker = {
 
       //      console.log("Save ", id, oldObj);
       await this.socketEmit("setObject", id, oldObj).then(
-        () => this.$alert("config saved"),
-        (e) => this.$alert("error:Save config error " + e)
+        () => this.$alert(this.$t("config saved")),
+        (e) => this.$alert(`error:${this.$t("Save config error")} ${e}`)
       );
 
       this.setIobrokerConfig(native);
@@ -321,11 +321,11 @@ const iobroker = {
       }
       if (event.altKey && event.shiftKey) {
         this.$copyText(JSON.stringify(this.$missing, null, 2));
-        return this.$alert("Missing words saved to clipboard!");
+        return this.$alert(this.$t("Missing words saved to clipboard!"));
       }
       const res = this.iobrokerConfigChanged
         ? await this.$confirm(
-            "okColor=error darken-2|Really exit without saving?"
+            `okColor=error darken-2|${this.$t("Really exit without saving?")}`
           )
         : true;
       if (res)
