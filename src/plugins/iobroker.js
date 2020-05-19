@@ -157,16 +157,19 @@ const iobroker = {
         const n = {};
         for (const p of props)
           if (
+            !o.translated &&
             ["label", "text", "html", "tooltip", "placeholder", "hint"].indexOf(
               p
             ) >= 0
           ) {
+            console.log(p, o[p]);
             if (Array.isArray(o[p])) n[p] = o[p].map((s) => that.$t(s));
             else n[p] = that.$t(o[p]);
           } else n[p] = o[p];
 
         if (Array.isArray(n.items)) n.items = n.items.map((i) => transl(i));
         //          for (const i in n.items) n.items.slice(i, 1, transl(o.items[i]));
+        n.translated = true;
         return n;
       }
 

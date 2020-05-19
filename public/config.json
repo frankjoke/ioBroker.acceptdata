@@ -14,6 +14,7 @@
                     "value": "port",
                     "sm3": true,
                     "prepend-icon": "mdi-home-import-outline",
+                    "persistent-hint": true,
                     "rules": [
                         "numberRule"
                     ],
@@ -112,102 +113,12 @@
                     ]
                 }
             ]
-        },
-        {
-            "label": "Contact",
-            "icon": "mdi-phone",
-            "devOnly": true,
-            "items": [
-                {
-                    "type": "text",
-                    "label": "For Path field:",
-                    "html": "The external device can connect to the adapter's server using following path: example `http://iobroker-server:port/<strong>path</strong>?data=...`",
-                    "sm4": true,
-                    "class": "pa-1 align-self-end",
-                    "style": "width='98%'",
-                    "cols": 2
-                },
-                {
-                    "type": "string",
-                    "label": "String",
-                    "placeholder": "Enter HTML...",
-                    "value": "string1",
-                    "prepend-icon": "mdi-home-import-outline",
-                    "rules": [
-                        "($ && $.length>0) || 'String cannot be empty!'"
-                    ],
-                    "cols": 3
-                },
-                {
-                    "type": "horizontal"
-                },
-                {
-                    "type": "checkbox",
-                    "label": "Checkbox",
-                    "value": "checkbox1",
-                    "cols": 2
-                },
-                {
-                    "type": "chips",
-                    "label": "Chips",
-                    "value": "chips1",
-                    "select_O": [
-                        "aaa",
-                        "bbb",
-                        3,
-                        5
-                    ],
-                    "delimiters": [
-                        ",",
-                        ";"
-                    ],
-                    "flat": true,
-                    "hint": "please enter: old device name = new device name",
-                    "rules": [
-                        "{const f = $.filter(i => i.indexOf('=')<1 || i.length <3); return !f.length ? true : `At least 3 chars and need to include an '=' after first position for ${f[0]}`;}"
-                    ],
-                    "cols": 6
-                },
-                {
-                    "type": "checkbox",
-                    "value": "checkbox2"
-                },
-                {
-                    "ruler": "spacer",
-                    "type": "switch",
-                    "label": "Switch",
-                    "value": "checkbox1"
-                },
-                {
-                    "type": "text",
-                    "label": "Html Contact",
-                    "html": "Das ist<br>html",
-                    "attrs": {
-                        "sm4": true,
-                        "class": "pa-1"
-                    }
-                },
-                {
-                    "type": "vertical"
-                },
-                {
-                    "type": "text",
-                    "label": "Text Contact",
-                    "text": "Das ist Text",
-                    "attrs": {
-                        "sm4": true,
-                        "class": "pa-2 align-self-center"
-                    }
-                }
-            ]
         }
-    ],
+   ],
     "translation": {
         "getMissing": {
+            "en": "Missing text",
             "de": "FehlendeTexte"
-        },
-        "Port": {
-            "de": "IP Port"
         }
     },
     "icon": "acceptdata.png",

@@ -19,14 +19,14 @@
     />
     <slot></slot>
     <v-tooltip v-if="tooltip" :activator="activator" v-bind="ttAttrs"
-      ><span v-t="tooltip"></span
-    ></v-tooltip>
+      ><span>{{ tooltip }}</span></v-tooltip
+    >
   </v-btn>
   <span v-else-if="img">
     <v-icon :id="myUid" v-bind="bAttrs" v-text="img" @click.stop="click" />
     <v-tooltip v-if="tooltip" :activator="activator" v-bind="ttAttrs">
-      <span v-t="tooltip"></span
-    ></v-tooltip>
+      <span>{{ tooltip }}</span></v-tooltip
+    >
     <slot></slot>
   </span>
   <span v-else>
@@ -34,8 +34,8 @@
       <slot></slot>
     </v-icon>
     <v-tooltip v-if="tooltip" :activator="activator" v-bind="ttAttrs">
-      <span v-t="tooltip"></span
-    ></v-tooltip>
+      <span>{{ tooltip }}</span></v-tooltip
+    >
   </span>
 </template>
 

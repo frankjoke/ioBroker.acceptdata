@@ -110,7 +110,7 @@ export default {
         if (!options.color) options.color = "primary lighten-2";
       }
       if (!options.text && options.tt)
-        options.text = this.$dictionary.translate(options.tt);
+        options.text = this.$t(options.tt);
       options = Object.assign(
         {
           timeout: this.timeout,

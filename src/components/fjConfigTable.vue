@@ -7,7 +7,7 @@
         v-model="search"
         class="body-1"
         append-icon="mdi-magnify"
-        label="Search"
+        :label="$t('Search')"
         single-line
         hide-details
         dense
@@ -17,7 +17,7 @@
         text
         small
         @click="addRow"
-        label="Add entry"
+        :label="$t('Add entry')"
         img="mdi-playlist-plus"
       />
     </v-toolbar>
@@ -42,7 +42,7 @@
                 color="primary darken-4"
                 img="mdi-transfer-up"
                 @click.stop="itemMove(index, -1)"
-                tooltip="move item one line up"
+                :tooltip="$t('move item one line up')"
               />
               <fjB
                 v-if="disableSort"
@@ -50,13 +50,13 @@
                 :disabled="index >= items.length - 1"
                 img="mdi-transfer-down"
                 @click.stop="itemMove(index, +1)"
-                tooltip="move item one line down"
+                :tooltip="$t('move item one line down')"
               />
               <fjB
                 img="mdi-delete-forever"
                 color="error darken-4"
                 @click.stop="itemDelete(index)"
-                tooltip="delete item"
+                :tooltip="$t('delete item')"
               />
             </span>
             <fjConfigItem
@@ -88,16 +88,15 @@ export default {
   }),
   methods: {
     async itemDelete(i) {
-      return this.$confirm(
-        `Do you really want to delete item[${i}]`
-      ).then((ret) => this.items.splice(i, 1));
-      //      this.items = this.items.slice(i.index,1);
+      const ret = await this.$confirm(
+        this.$t("Do you really want to delete item") + `[${i}] ?`
+      );
+      if (ret) this.items.splice(i, 1);
     },
 
     itemMove(i, dir) {
       const item = this.items.splice(i, 1);
       this.items.splice(i + dir, 0, item[0]);
-      //      this.items = this.items.slice(i.index,1);
     },
 
     numberRule(val) {
@@ -139,7 +138,7 @@ export default {
       });
 
       this.items.push(ni);
-      this.snackText = "Added Row.";
+      this.snackText = $t("Added Row.");
     },
   },
   //  watch: {},
@@ -148,7 +147,7 @@ export default {
       return [
         ...this.columns,
         {
-          text: "Edit",
+          text: this.$t("Edit"),
           value: "-",
           align: "center",
           width: this.searchDisabled ? "8%" : "4%",

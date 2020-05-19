@@ -34,7 +34,7 @@
       <v-tabs centered v-model="page">
         <v-tab v-for="item in configTranslated" v-bind:key="item.label">
           <v-icon v-if="item.icon" left small>{{ item.icon }}</v-icon>
-          <span v-t="item.label" />
+          <span>{{ item.label }}</span>
         </v-tab>
       </v-tabs>
       <v-spacer></v-spacer>

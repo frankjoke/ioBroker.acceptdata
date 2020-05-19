@@ -3,11 +3,11 @@
     v-model="dialog"
     :max-width="options.width"
     :style="{ zIndex: options.zIndex }"
-    @keydown.esc="cancel"
+    @keydown.esc="agree(false)"
   >
     <v-card>
       <v-toolbar dark :color="options.color" dense flat>
-        <v-toolbar-title class="white--text" v-t="options.title" />
+        <v-toolbar-title class="white--text" v-text="options.title" />
       </v-toolbar>
       <v-card-text
         v-show="!!options.message"
@@ -16,12 +16,12 @@
       />
       <v-card-actions class="pt-0">
         <v-spacer></v-spacer>
-        <v-btn :color="options.okColor" text @click.native="agree">
+        <v-btn :color="options.okColor" text @click.native="agree(true)">
           <v-icon v-if="options.okIcon" left v-text="options.okIcon" />
-          <span v-t="options.okText"></span>
+          <span>{{ options.okText }}</span>
         </v-btn>
-        <v-btn :color="options.cancelColor" text @click.native="cancel">
-          <span v-t="options.cancelText"></span>
+        <v-btn :color="options.cancelColor" text @click.native="agree(false)">
+          <span>{{ options.cancelText }}</span>
           <v-icon v-if="options.cancelIcon" right v-text="options.cancelIcon" />
         </v-btn>
       </v-card-actions>
@@ -54,12 +54,12 @@ export default {
     open(message, options) {
       const defaults = {
         color: "primary",
-        cancelColor: "grey darken-1",
-        okColor: "success darken-1",
-        okText: "Yes",
+        cancelColor: "grey darken-2",
+        okColor: "success darken-2",
+        okText: this.$t("Yes"),
         okIcon: "mdi-check",
         cancelIcon: "mdi-close",
-        cancelText: "No",
+        cancelText: this.$t("No"),
         message: "",
         title: "",
         width: 390,
@@ -90,7 +90,7 @@ export default {
         }
       } else options.message = message;
 
-      if (!options.title) options.title = "Please confirm:";
+      if (!options.title) options.title = this.$t("Please confirm:");
 
       this.title = options.title;
       this.message = options.message;
@@ -102,15 +102,16 @@ export default {
         this.resolve = resolve;
       });
     },
-    agree() {
-      this.$nextTick().then((_) => this.resolve(true));
+
+    async agree(what) {
+      await this.$nextTick();
       this.dialog = false;
-    },
-    cancel() {
-      this.$nextTick().then((_) => this.resolve(false));
-      this.dialog = false;
+      await this.$nextTick();
+      // console.log("will resolve $confirm with", !!what);
+      this.resolve(!!what);
     },
   },
+
   created() {
     Vue.prototype.$confirm = this.open.bind(this);
   },

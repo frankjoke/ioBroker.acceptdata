@@ -64,24 +64,33 @@ i18n.missing = (lang, key, vm, values) => {
   //    return i18n.t(key, i18n.fallbackLocale).toString();
   //  }
   //
+  const fb = i18nOptions.fallbackLocale;
   function getKey() {
     if (words[key] && words[key][lang]) return words[key][lang];
-    if (!missing[key] || !missing[key][lang]) {
+    /*     if (!missing[key] || !missing[key][lang]) {
       //    console.log(`missing for lang (${lang}): '${key}'`);
       if (missing[key]) missing[key][lang] = null;
       else
-        missing[key] = {
+        missing[key] = 
           [lang]: null,
         };
     }
-    if (words[key] && words[key][i18nOptions.fallbackLocale])
-      return words[key][i18nOptions.fallbackLocale];
-    else if (!missing[key] || !missing[key][i18nOptions.fallbackLocale]) {
+ */ if (
+      words[key] &&
+      words[key][fb]
+    ) {
+      if (missing[key] && !missing[key][lang]) missing[key][lang] = key;
+      else if (!missing[key])
+        missing[key] = {
+          [lang]: key,
+        };
+      return words[key][fb];
+    } else if (!missing[key] || !missing[key][fb]) {
       //    console.log(`missing for lang (${lang}): '${key}'`);
-      if (missing[key]) missing[key][i18nOptions.fallbackLocale] = key;
+      if (missing[key]) missing[key][fb] = key;
       else
         missing[key] = {
-          [i18nOptions.fallbackLocale]: key,
+          [fb]: key,
         };
     }
     return key; // instead of showing the key + warning
