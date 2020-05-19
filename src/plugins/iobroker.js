@@ -162,7 +162,7 @@ const iobroker = {
               p
             ) >= 0
           ) {
-            console.log(p, o[p]);
+            // console.log(p, o[p]);
             if (Array.isArray(o[p])) n[p] = o[p].map((s) => that.$t(s));
             else n[p] = that.$t(o[p]);
           } else n[p] = o[p];
