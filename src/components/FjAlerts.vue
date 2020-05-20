@@ -37,7 +37,7 @@
               @click.stop="deleteAlert(index)"
             ></fjB>
           </template>
-          <span class="body-2" v-html="$t(item.text)"></span>
+          <span class="body-2" v-html="item.text"></span>
         </v-alert>
       </transition>
     </v-menu>
@@ -109,8 +109,7 @@ export default {
         options.type = null;
         if (!options.color) options.color = "primary lighten-2";
       }
-      if (!options.text && options.tt)
-        options.text = this.$t(options.tt);
+      if (!options.text && options.tt) options.text = this.$t(options.tt);
       options = Object.assign(
         {
           timeout: this.timeout,

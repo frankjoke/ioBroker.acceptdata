@@ -162,7 +162,16 @@ export default {
     },
 
     attrs(remove) {
-      const rem = ["type", "value", "attrs", "min", "max", "convertold"];
+      const rem = [
+        "type",
+        "value",
+        "attrs",
+        "min",
+        "max",
+        "convertold",
+        "eval",
+        "_translated",
+      ];
 
       if (remove) {
         if (typeof remove === "string")

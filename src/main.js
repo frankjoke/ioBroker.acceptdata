@@ -59,7 +59,29 @@ Vue.prototype.$alert = function (...args) {
 Vue.mixin({
   methods: {
     copyObject(obj) {
-      return JSON.parse(this.myStringify(obj));
+      function co(obj, stack) {
+        if (Array.isArray(obj))
+          return obj.map(i => {
+            stack.push(obj);
+            if (stack.indexOf(i) < 0)
+              i = co(i, stack);
+            stack.pop();
+            return i;
+          });
+        else if (typeof obj === "object") {
+          const no = {};
+          stack.push(obj);
+          for (const [name, value] of Object.entries(obj)) {
+            if (stack.indexOf(value) < 0)
+              no[name] = co(value, stack);
+            else console.log("recursive object ", name, value);
+          }
+          stack.pop()
+          return no;        
+        } else return obj;
+      }
+      return co(obj, []);
+//      return JSON.parse(this.myStringify(obj));
     },
 
     myStringify(obj) {

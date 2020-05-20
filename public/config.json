@@ -5,10 +5,10 @@
             "icon": "mdi-cog",
             "items": [
                 {
+                    "label": "Port",
                     "type": "number",
                     "min": 1000,
                     "max": 65000,
-                    "label": "Port",
                     "placeholder": "Enter port address on which iobroker will listen to your request",
                     "hint": "Port to listen on >1000 & <65000",
                     "value": "port",
@@ -21,46 +21,48 @@
                     "cols": 4
                 },
                 {
-                    "type": "html",
                     "label": "For Method field:",
+                    "type": "html",
                     "text": [
-                        "Either <code>GET</code> or <code>POST</code> is supported.",
+                        "!<code>GET</code> | <code>POST</code> ", "is supported.",
                         "By entering the below URL in your browser (changing iobroker-server to your server name or ip) you can test the 'Test' entry:",
-                        "<a target='_blank' rel='noopener noreferrer' href='http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>"
+                        "!<a target='_blank' rel='noopener noreferrer' href='http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>"
                     ],
                     "style": "width='98%'",
-                    "eval": "{for (i in item.text) item.text[i] = item.text[i].replace(/myhost:/g,this.$ioBroker.iobrokerHostConnection ? this.$ioBroker.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${conf.port}/`)}",
+                    "eval": "{item.text = item.text.replace(/myhost:/g,this.$ioBroker.iobrokerHostConnection ? this.$ioBroker.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${conf.port}/`)}",
                     "cols": 8
                 },
                 {
-                    "type": "html",
                     "label": "For Path field:",
+                    "type": "html",
                     "text": [
                         "The external device can connect to the adapter's server using following example:",
-                        "`http://myhost:port/<code>path</code>?data=...`"
+                        "!`http://myhost:port/<code>path</code>?data=...`"
                     ],
                     "style": "width='98%'",
-                    "eval": "{for (i in item.text) item.text[i] = item.text[i].replace(/myhost:/g,this.$ioBroker.iobrokerHostConnection ? this.$ioBroker.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${conf.port}/`)}",
+                    "eval": "{item.text = item.text.replace(/myhost:/g,this.$ioBroker.iobrokerHostConnection ? this.$ioBroker.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${conf.port}/`)}",
                     "cols": 4
                 },
                 {
-                    "type": "html",
                     "label": "For Convert field:",
+                    "type": "html",
                     "text": [
-                        "Conversion receives data as variable $ and can convert it to some new format which will then be stored in state(s) named with path.",
-                        "example: <code>{ tempC: FtoC($.tempf, 1) }</code> where FtoC an internal conversion for Farenheit to Celsius is.",
-                        "Other functions are <code>toNum(str, digits_after_comma), CtoF(..) and ItoMM(...)</code>",
+                        "Conversion receives data as variable $ and can convert it to some new format which will then be stored in state(s) named with path. Example: ",
+                        "!<code>{ tempC: FtoC($.tempf, 1) }</code>",
+                        " where 'FtoC' is an internal conversion for Farenheit to Celsius. Other functions are",
+                        "!<code>toNum(str, digits_after_comma), CtoF(..) and ItoMM(...)</code>",
                         "The field names can end with '_' and type/unit information. The text after the '_' will be the type like with '_date',",
                         "or if type should be number with specific unit you can name it '_$km/h'.",
                         "There are some predefined types available as well which can be named directly (without $):",
-                        "<code>'Hum', 'Kmh', 'Deg', 'Date', 'Hpa', 'Mm', 'Wm2', 'Txt', 'C', 'V'</code> where V is just a number Value, the many of the other set also roles."
+                        "!<code>'Hum', 'Kmh', 'Deg', 'Date', 'Hpa', 'Mm', 'Wm2', 'Txt', 'C', 'N'</code>",
+                        "where N is just a number Value, the many of the other set also roles."
                     ],
                     "style": "width='98%'",
                     "cols": 8
                 },
                 {
-                    "type": "table",
                     "label": "Path Table",
+                    "type": "table",
                     "value": "pathtable",
                     "disable-sort": true,
                     "cols": 12,
