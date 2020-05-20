@@ -318,6 +318,11 @@ const iobroker = {
       return true;
     },
 
+    async saveAndClose(event) {
+      await this.saveAdapterConfig(null);
+      await this.closeAdapterConfig(event);
+    },
+
     async closeAdapterConfig(event) {
       function close() {
         if (typeof parent !== "undefined" && parent) {

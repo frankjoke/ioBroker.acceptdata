@@ -62,7 +62,7 @@
         text
         :disabled="!iobrokerConfigChanged"
         small
-        @click.stop="saveAdapterConfig(null)"
+        @click.stop="saveAdapterConfig"
         :label="$t('Save')"
         img="mdi-content-save"
         :tooltip="$t('Save current config')"
@@ -71,7 +71,7 @@
       <fjB
         text
         small
-        @click.stop="saveAdapterConfig(null).then(() => closeAdapterConfig())"
+        @click.stop="saveAndClose"
         :disabled="!iobrokerConfigChanged"
         dense
         :tooltip="$t('Save settings and close config')"
