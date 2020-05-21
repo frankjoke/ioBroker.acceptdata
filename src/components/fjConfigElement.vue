@@ -1,5 +1,5 @@
 <template>
-  <v-col v-if="nCols" :cols="nCols" class="pa-1">
+  <v-col v-if="nCols" :cols="nCols" :sm="sm" :md="md" :lg="lg" class="pa-1">
     <fjConfigRuler
       v-for="(item, index) in nRuler"
       v-bind:key="index"
@@ -35,7 +35,10 @@ export default {
     return {
       nToolItem: {},
       nRuler: [],
-      nCols: 0,
+      nCols: "",
+      sm: "",
+      md: "",
+      lg: "",
     };
   },
   props: {
@@ -51,11 +54,19 @@ export default {
   methods: {
     makeItems() {
       const nitem = this.copyObject(this.cToolItem);
-      let { ruler, cols, rcols } = nitem;
+      let { ruler, cols, rcols, sm, md, lg } = nitem;
       delete nitem.ruler;
       delete nitem.cols;
+      delete nitem.sm;
+      delete nitem.md;
+      delete nitem.lg;
+      this.sm = sm ? sm : undefined;
+      this.md = md ? md : undefined;
       this.nToolItem = nitem;
-      this.nCols = cols;
+      if (cols && Number(cols)) {
+        this.nCols = cols.toString();
+      }
+      this.lg = lg ? lg : sm || md ? cols : undefined;
       ruler =
         ruler &&
         ruler.split("|").map((item) => {
