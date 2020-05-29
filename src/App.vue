@@ -129,6 +129,7 @@ export default {
   //  created() {},
   async beforeMount() {
     this.page = 0;
+    this.iobrokerLang = this.iobrokerLang || "en";
     return await this.makeConfigPage(0);
   },
   // async mounted() {},

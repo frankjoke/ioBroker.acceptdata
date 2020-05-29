@@ -24,7 +24,7 @@
     <v-data-table
       dense
       :headers="icolumns"
-      :items="items || []"
+      :items="table || []"
       :search="search"
       :disableSort="disableSort"
     >
@@ -38,24 +38,24 @@
             <span v-if="column.value == '-'" class="d-flex justify-end">
               <fjB
                 v-if="disableSort"
-                :disabled="!index"
+                :disabled="table.indexOf(item)<1"
                 color="primary darken-4"
                 img="mdi-transfer-up"
-                @click.stop="itemMove(index, -1)"
+                @click.stop="itemMove(item, -1)"
                 :tooltip="$t('move item one line up')"
               />
               <fjB
                 v-if="disableSort"
                 color="primary darken-4"
-                :disabled="index >= items.length - 1"
+                :disabled="table.indexOf(item) >= (table.length - 1)"
                 img="mdi-transfer-down"
-                @click.stop="itemMove(index, +1)"
+                @click.stop="itemMove(item, +1)"
                 :tooltip="$t('move item one line down')"
               />
               <fjB
                 img="mdi-delete-forever"
                 color="error darken-4"
-                @click.stop="itemDelete(index)"
+                @click.stop="itemDelete(item)"
                 :tooltip="$t('delete item')"
               />
             </span>
@@ -77,7 +77,7 @@ export default {
   name: "fjConfigTable",
 
   props: {
-    items: { type: Array, required: true },
+    table: { type: Array, required: true },
     columns: { type: Array, required: true },
     label: { type: String, required: false, default: "" },
     icon: { type: String, required: false, default: "mdi-table" },
@@ -87,16 +87,21 @@ export default {
     search: "",
   }),
   methods: {
-    async itemDelete(i) {
+    async itemDelete(item) {
+      if (this.table.indexOf(item) < 0) return;
+      const i = this.table.indexOf(item);
       const ret = await this.$confirm(
-        this.$t("Do you really want to delete item") + `[${i}] ?`
+        this.$t("Do you really want to delete item") + ` '${item.path}' ?`
       );
-      if (ret) this.items.splice(i, 1);
+      if (ret) this.table.splice(i, 1);
     },
 
     itemMove(i, dir) {
-      const item = this.items.splice(i, 1);
-      this.items.splice(i + dir, 0, item[0]);
+      const index = this.table.indexOf(i);
+      if (index >= 0) i = index;
+      else return;
+      const item = this.table.splice(i, 1);
+      this.table.splice(i + dir, 0, item[0]);
     },
 
     numberRule(val) {
@@ -113,7 +118,7 @@ export default {
 
     cTable(index, column) {
       return {
-        items: this.items,
+        items: this.table,
         index: index,
         column: column,
       };

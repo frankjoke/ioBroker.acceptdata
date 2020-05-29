@@ -68,7 +68,7 @@
   <fjConfigTable
     v-else-if="cToolItem.type == 'table'"
     :columns="cToolItem.items"
-    :items="cItem[cToolItem.value]"
+    :table="cItem[cToolItem.value]"
     v-bind="attrs()"
   />
   <v-simple-checkbox

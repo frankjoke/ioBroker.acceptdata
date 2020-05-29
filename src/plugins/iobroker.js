@@ -147,6 +147,7 @@ const iobroker = {
       },
       set(value) {
         this.$store.commit("iobrokerLang", value);
+        this.$vuetify.lang.current = value.startsWith("zh") ? "zhHans" : value;
       },
     },
     iobrokerInstance: {

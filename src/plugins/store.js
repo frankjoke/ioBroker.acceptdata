@@ -84,7 +84,7 @@ export default new Vuex.Store({
   },
   actions: {
     async loadConfigFile({ commit, state }) {
-      console.log("action loadConfigFile", this);
+      // console.log("action loadConfigFile", this);
       let config = null;
       try {
         config = await fetch("./config.json")
