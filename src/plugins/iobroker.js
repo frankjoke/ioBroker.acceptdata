@@ -1,4 +1,5 @@
 import Vue from "vue";
+import { mapActions } from "vuex";
 // import packagej from "../../package.json";
 // import iopackage from "../../io-package.json";
 //import { runInThisContext } from "vm";
@@ -7,21 +8,77 @@ import Vue from "vue";
 // var parts = path.split("/");
 // parts.splice(-3);
 // var instance = window.location.search;
-const devMode = process.env.NODE_ENV !== "production";
-const inst = window.location.search.slice(1) || "0";
-var aname = window.location.pathname.split("/");
-aname = aname[aname.length - 2];
-if (aname === "" && process.env.VUE_APP_ADAPTERNAME)
-  aname = process.env.VUE_APP_ADAPTERNAME;
+
+// const devMode = process.env.NODE_ENV !== "production";
+// const inst = window.location.search.slice(1) || "0";
+// var aname = window.location.pathname.split("/");
+// aname = aname[aname.length - 2];
+// if (aname === "" && process.env.VUE_APP_ADAPTERNAME)
+//   aname = process.env.VUE_APP_ADAPTERNAME;
+
+function getTimeInterval(oldTime, hoursToShow) {
+  hoursToShow = hoursToShow || 0;
+  if (oldTime < 946681200000) oldTime = oldTime * 1000;
+
+  var result = "";
+
+  var newTime = new Date();
+
+  if (!oldTime) return "";
+  if (typeof oldTime === "string") {
+    oldTime = new Date(oldTime);
+  } else {
+    if (typeof oldTime === "number") {
+      oldTime = new Date(oldTime);
+    }
+  }
+
+  var seconds = (newTime.getTime() - oldTime.getTime()) / 1000;
+
+  if (hoursToShow && seconds / 3600 > hoursToShow) return "";
+  //  seconds = Math.floor(seconds / 5) * 5;
+
+  if (seconds < 5) {
+    result = translate("just now");
+  } else if (seconds <= 60) {
+    result = translate("${1} seconds ago", Math.floor(seconds));
+  } else if (seconds <= 3600) {
+    result = translate(
+      "for ${1} min ${2} seconds.",
+      Math.floor(seconds / 60),
+      Math.floor(seconds % 60)
+    );
+  } else if (seconds <= 3600 * 24) {
+    // between 1 und 24 hours
+    var hrs = Math.floor(seconds / 3600);
+    if (hrs === 1 || hrs === 21) {
+      result = translate("for1Hour", hrs, Math.floor(seconds / 60) % 60);
+    } else if (hrs >= 2 && hrs <= 4) {
+      result = translate("for2-4Hours", hrs, Math.floor(seconds / 60) % 60);
+    } else {
+      result = translate("forHours", hrs, Math.floor(seconds / 60) % 60);
+    }
+  } else if (seconds > 3600 * 24 && seconds <= 3600 * 48) {
+    result = translate("yesterday");
+  } else if (seconds > 3600 * 48) {
+    // over 2 days
+    result = translate("for ${1} hours", Math.floor(seconds / 3600));
+  }
+
+  return result;
+}
 
 //console.log(process.env, inst, aname);
+Vue.filter("ago", (value, arg) => {
+  return getTimeInterval(value, arg);
+});
 
 //console.log(process.env);
 const mylang = (navigator.language || navigator.userLanguage).slice(0, 2);
 const myCache = {};
 
 const iobroker = {
-  data() {
+  /*   data() {
     return {
       iobrokerConfigOrig: "",
       iobrokerHost: "",
@@ -43,6 +100,7 @@ const iobroker = {
       devMode,
     };
   },
+ */
   sockets: {
     connect() {
       this.socketConnected = true;
@@ -59,6 +117,150 @@ const iobroker = {
   },
 
   computed: {
+    iobrokerConfigOrig: {
+      get() {
+        return this.$store.state.iobrokerConfigOrig;
+      },
+      // set(value) {
+      //   this.$store.commit("iobrokerConfigOrig", value);
+      // },
+    },
+    iobrokerHost: {
+      get() {
+        return this.$store.state.iobrokerHost;
+      },
+      set(value) {
+        this.$store.commit("iobrokerHost", value);
+      },
+    },
+    iobrokerHostConnection: {
+      get() {
+        return this.$store.state.iobrokerHostConnection;
+      },
+      set(value) {
+        this.$store.commit("iobrokerHostConnection", value);
+      },
+    },
+    iobrokerLang: {
+      get() {
+        return this.$store.state.iobrokerLang;
+      },
+      set(value) {
+        this.$store.commit("iobrokerLang", value);
+      },
+    },
+    iobrokerInstance: {
+      get() {
+        return this.$store.state.iobrokerInstance;
+      },
+      set(value) {
+        this.$store.commit("iobrokerInstance", value);
+      },
+    },
+    iobrokerConfigFile: {
+      get() {
+        return this.$store.state.iobrokerConfigFile;
+      },
+      set(value) {
+        this.$store.commit("iobrokerConfigFile", value);
+      },
+    },
+    iobrokerConfig: {
+      get() {
+        return this.$store.state.iobrokerConfig;
+      },
+      set(value) {
+        this.$store.commit(
+          "iobrokerConfig",
+          JSON.parse(this.myStringify(value))
+        );
+      },
+    },
+    ioBrokerSystemConfig: {
+      get() {
+        return this.$store.state.ioBrokerSystemConfig;
+      },
+      set(value) {
+        this.$store.commit("ioBrokerSystemConfig", value);
+      },
+    },
+    iobrokerAdapter: {
+      get() {
+        return this.$store.state.iobrokerAdapter;
+      },
+      set(value) {
+        this.$store.commit("iobrokerAdapter", value);
+      },
+    },
+    iobrokerPackage: {
+      get() {
+        return this.$store.state.iobrokerPackage;
+      },
+      set(value) {
+        this.$store.commit("iobrokerPackage", value);
+      },
+    },
+    iobrokerIoPackage: {
+      get() {
+        return this.$store.state.iobrokerIoPackage;
+      },
+      set(value) {
+        this.$store.commit("iobrokerIoPackage", value);
+      },
+    },
+    iobrokerAdapterCommon: {
+      get() {
+        return this.$store.state.iobrokerAdapterCommon;
+      },
+      set(value) {
+        this.$store.commit("iobrokerAdapterCommon", value);
+      },
+    },
+    ioBrokerCerts: {
+      get() {
+        return this.$store.state.ioBrokerCerts;
+      },
+      set(value) {
+        this.$store.commit("ioBrokerCerts", value);
+      },
+    },
+    configTranslated: {
+      get() {
+        return this.$store.state.configTranslated;
+      },
+      set(value) {
+        this.$store.commit("configTranslated", value);
+      },
+    },
+    socketConnected: {
+      get() {
+        return this.$store.state.socketConnected;
+      },
+      set(value) {
+        this.$store.commit("socketConnected", value);
+      },
+    },
+    iobrokerReadme: {
+      get() {
+        return this.$store.state.iobrokerReadme;
+      },
+      set(value) {
+        this.$store.commit("iobrokerReadme", value);
+      },
+    },
+    adapterIcon: {
+      get() {
+        return this.$store.state.adapterIcon;
+      },
+    },
+    devMode: {
+      get() {
+        return this.$store.state.devMode;
+      },
+      set(value) {
+        this.$store.commit("devMode", value);
+      },
+    },
     ioBrokerCompareConfig() {
       return this.myStringify(this.iobrokerConfig);
     },
@@ -81,23 +283,17 @@ const iobroker = {
       deep: true,
     },
     async iobrokerLang(newv) {
-      const readme = await this.setAdapterReadme(
-        newv,
-        this.iobrokerAdapterCommon
-      );
-      this.iobrokerReadme = readme;
+      const readme = await this.setAdapterReadme({
+        lang: newv,
+      });
     },
     async iobrokerAdapterCommon(newv) {
-      const readme = await this.setAdapterReadme(this.iobrokerLang, newv);
-      this.iobrokerReadme = readme;
+      const readme = await this.setAdapterReadme({ common: newv });
     },
   },
   async created() {
-    Vue.prototype.$ioBroker = this;
-    this.iobrokerInstance = window.location.search.slice(1) || "0";
-    this.iobrokerLang = this.$i18n.locale = (
-      navigator.language || navigator.userLanguage
-    ).slice(0, 2);
+    //    this.iobrokerInstance = window.location.search.slice(1) || "0";
+    this.$i18n.locale = this.iobrokerLang;
     await this.loadConfigFile();
   },
 
@@ -110,7 +306,17 @@ const iobroker = {
 
   async mounted() {
     //    console.log("Mounted:", this.$socket);
-    await this.loadIoBroker();
+    //      console.log(this.$socket, this)
+    const id = "system.adapter." + this.iobrokerAdapterInstance;
+    const res = await this.$socketEmit("getObject", id);
+    if (res) {
+      this.iobrokerConfig = res.native;
+      if (res.common) this.iobrokerAdapterCommon = res.common;
+      //      this.$alert("new config received");
+      await this.wait(10);
+      this.$forceUpdate();
+    } else console.log(`No Adapterconfig received for ${id}!`);
+
     await this.wait(5);
     this.setAdapterReadme(this.iobrokerLang, this.iobrokerAdapterCommon);
 
@@ -122,33 +328,7 @@ const iobroker = {
   },
 
   methods: {
-    async loadConfigFile() {
-      let config = null;
-      try {
-        config = await fetch("./config.json")
-          .then((res) => {
-            // console.log("fetcher config.json", res);
-            return res.json();
-          })
-          .catch((err) => (console.log("config.json fetch err", err), null));
-      } catch (e) {
-        console.log("config.json fetch err", e);
-      }
-      if (config) {
-        this.iobrokerConfigFile = config;
-        this.adapterIcon = config.icon;
-      }
-    },
-
-    setAdapterReadme(lang, common) {
-      let rm = common.readme;
-      if (!rm) return "";
-      const crm = this.iobrokerConfigFile.readme;
-      if (crm && crm[lang]) rm = rm.replace("README.md", crm[lang]);
-      this.iobrokerReadme = rm;
-      return rm;
-    },
-
+    ...mapActions(["loadConfigFile", "setAdapterReadme"]),
     translateConfig(conf) {
       const that = this;
 
@@ -211,33 +391,14 @@ const iobroker = {
       //      console.log("Port", this.$t("Port"));
       this.$set(this, "configTranslated", []);
       for (const i of oldV) {
-        if (devMode || !i.devOnly) this.configTranslated.push(transl(i));
+        if (this.devMode || !i.devOnly) this.configTranslated.push(transl(i));
       }
       //      console.log("TRanslatedConfig:", this.configTranslated);
       return this.configTranslated;
     },
 
-    setIobrokerConfig(conf) {
-      const js = this.myStringify(conf || {});
-      this.$set(this, "iobrokerConfig", JSON.parse(js));
-      this.$set(this, "iobrokerConfigOrig", js);
-    },
-
-    async loadIoBroker() {
-      const id = "system.adapter." + this.iobrokerAdapterInstance;
-      const res = await this.socketEmit("getObject", id);
-      if (!res)
-        return console.log(`No Adapterconfig received for ${id}!`), null;
-      this.setIobrokerConfig(res.native);
-      if (res.common) this.iobrokerAdapterCommon = res.common;
-      //      this.$alert("new config received");
-      await this.wait(10);
-      this.$forceUpdate();
-      return res;
-    },
-
     async sendTo(_adapter_instance, command, message) {
-      return this.socketSendTo(
+      return this.$socketSendTo(
         "sendTo",
         _adapter_instance || this.iobrokerAdapterInstance,
         command,
@@ -246,7 +407,7 @@ const iobroker = {
     },
 
     async sendToHost(host, command, message) {
-      return this.socketSendTo(
+      return this.$socketSendTo(
         "sendToHost",
         host || this.iobrokerAdapterCommon.host,
         command,
@@ -264,7 +425,7 @@ const iobroker = {
 
     async getHost(ahost) {
       ahost = ahost || this.iobrokerAdapterCommon.host;
-      const host = await this.socketEmit("getHostByIp", ahost).then(
+      const host = await this.$socketEmit("getHostByIp", ahost).then(
         (res) => (this.iobrokerHost = res),
         (e) => null
       );
@@ -292,7 +453,7 @@ const iobroker = {
       const native = this.copyObject(this.iobrokerConfig);
       const id = "system.adapter." + this.iobrokerAdapterInstance;
       const oldObj =
-        (await this.socketEmit("getObject", id).catch((e) => null)) || {};
+        (await this.$socketEmit("getObject", id).catch((e) => null)) || {};
       if (!oldObj.native) return false;
       for (var a of Object.getOwnPropertyNames(native))
         if (a && a != "_adapter_info_") oldObj.native[a] = native[a];
@@ -308,12 +469,12 @@ const iobroker = {
  */
 
       //      console.log("Save ", id, oldObj);
-      await this.socketEmit("setObject", id, oldObj).then(
+      await this.$socketEmit("setObject", id, oldObj).then(
         () => this.$alert(this.$t("config saved")),
         (e) => this.$alert(`error:${this.$t("Save config error")} ${e}`)
       );
 
-      this.setIobrokerConfig(native);
+      this.iobrokerConfig = native;
       await this.wait(10);
       return true;
     },
@@ -356,21 +517,21 @@ const iobroker = {
     },
 
     async getObject(id) {
-      return await this.socketEmit("getObject", id).then(
+      return await this.$socketEmit("getObject", id).then(
         (res) => res,
         (e) => (console.log("getObject err:", id, e), null)
       );
     },
 
     async getState(id) {
-      return this.socketEmit("getState", id).then(
+      return this.$socketEmit("getState", id).then(
         (res) => res,
         (e) => (console.log(e), null)
       );
     },
 
     async getEnums(_enum) {
-      return this.socketEmit("getObjectView", "system", "enum", {
+      return this.$socketEmit("getObjectView", "system", "enum", {
         startkey: "enum." + _enum,
         endkey: "enum." + _enum + ".\u9999",
       }).then(
@@ -387,7 +548,7 @@ const iobroker = {
     },
 
     async getGroups() {
-      return this.socketEmit("getObjectView", "system", "group", {
+      return this.$socketEmit("getObjectView", "system", "group", {
         startkey: "system.group.",
         endkey: "system.group.\u9999",
       }).then(
@@ -403,7 +564,7 @@ const iobroker = {
     },
 
     async getUsers() {
-      return this.socketEmit("getObjectView", "system", "user", {
+      return this.$socketEmit("getObjectView", "system", "user", {
         startkey: "system.user.",
         endkey: "system.user.\u9999",
       }).then(
@@ -421,7 +582,7 @@ const iobroker = {
     async getAdapterInstances(adapter) {
       adapter = adapter || this.iobrokerAdapter;
 
-      return this.socketEmit("getObjectView", "system", "instance", {
+      return this.$socketEmit("getObjectView", "system", "instance", {
         startkey: "system.adapter." + adapter,
         endkey: "system.adapter." + adapter + ".\u9999",
       }).then(
@@ -437,7 +598,7 @@ const iobroker = {
     async getExtendableInstances(adapter) {
       adapter = adapter || this.iobrokerAdapter;
 
-      return this.socketEmit("getObjectView", "system", "instance", null).then(
+      return this.$socketEmit("getObjectView", "system", "instance", null).then(
         (doc) => {
           var res = [];
           for (var i = 0; i < doc.rows.length; i++)
@@ -451,106 +612,114 @@ const iobroker = {
     },
 
     async loadSystemConfig() {
+      const that = this;
+
+      async function loadSystemConfigInner() {
+        let res = await that
+          .$socketEmit({
+            event: "system.config",
+            timeout: 1000,
+          })
+          .then(
+            (x) => x,
+            (e) => null
+          );
+        if (res && res.common) {
+          that.ioBrokerSystemConfig = res;
+          that.iobrokerLang = res.common.language || that.iobrokerLang;
+          that.$i18n.locale = that.iobrokerLang;
+        } else return Promise.reject(null);
+
+        res = await that
+          .$socketEmit({
+            event: "system.certificates",
+            timeout: 1000,
+          })
+          .then(
+            (x) => x,
+            (e) => null
+          );
+        if (res && res.native && res.native.certificates) {
+          that.ioBrokerCerts = [];
+          for (var c in res.native.certificates) {
+            if (
+              !res.native.certificates.hasOwnProperty(c) ||
+              !res.native.certificates[c]
+            )
+              continue;
+
+            // If it is filename, it could be everything
+            if (
+              res.native.certificates[c].length < 700 &&
+              (res.native.certificates[c].indexOf("/") !== -1 ||
+                res.native.certificates[c].indexOf("\\") !== -1)
+            ) {
+              var __cert = {
+                name: c,
+                type: "",
+              };
+              if (c.toLowerCase().indexOf("private") !== -1) {
+                __cert.type = "private";
+              } else if (
+                res.native.certificates[c].toLowerCase().indexOf("private") !==
+                -1
+              ) {
+                __cert.type = "private";
+              } else if (c.toLowerCase().indexOf("public") !== -1) {
+                __cert.type = "public";
+              } else if (
+                res.native.certificates[c].toLowerCase().indexOf("public") !==
+                -1
+              ) {
+                __cert.type = "public";
+              }
+              that.ioBrokerCerts.push(__cert);
+              continue;
+            }
+
+            var _cert = {
+              name: c,
+              type:
+                res.native.certificates[c].substring(
+                  0,
+                  "-----BEGIN RSA PRIVATE KEY".length
+                ) === "-----BEGIN RSA PRIVATE KEY" ||
+                res.native.certificates[c].substring(
+                  0,
+                  "-----BEGIN PRIVATE KEY".length
+                ) === "-----BEGIN PRIVATE KEY"
+                  ? "private"
+                  : "public",
+            };
+            if (_cert.type === "public") {
+              var m = res.native.certificates[c].split(
+                "-----END CERTIFICATE-----"
+              );
+              var count = 0;
+              for (var _m = 0; _m < m.length; _m++) {
+                if (m[_m].replace(/\r\n|\r|\n/, "").trim()) count++;
+              }
+              if (count > 1) _cert.type = "chained";
+            }
+
+            that.ioBrokerCerts.push(_cert);
+          }
+        }
+        return that.ioBrokerSystemConfig;
+      }
+
       let counter = 10;
       // console.log("Will try to load systemconfig now ...");
       while (counter)
         try {
-          counter -= 1;
-          const res = await this.loadSystemConfigInner();
+          counter--;
+          const res = await loadSystemConfigInner();
           return res;
         } catch (e) {
           //          console.log("Retry load SystemConfig ", counter, e);
         }
       console.log("Could not load System config after 10 trials!");
       return null;
-    },
-
-    async loadSystemConfigInner() {
-      let res = await this.socketEmit({
-        event: "system.config",
-        timeout: 1000,
-      }).then(
-        (x) => x,
-        (e) => null
-      );
-      if (res && res.common) {
-        this.ioBrokerSystemConfig = res;
-        this.iobrokerLang = res.common.language || this.iobrokerLang;
-        this.$i18n.locale = this.iobrokerLang;
-      } else return Promise.reject(null);
-
-      res = await this.socketEmit({
-        event: "system.certificates",
-        timeout: 1000,
-      }).then(
-        (x) => x,
-        (e) => null
-      );
-      if (res && res.native && res.native.certificates) {
-        this.ioBrokerCerts = [];
-        for (var c in res.native.certificates) {
-          if (
-            !res.native.certificates.hasOwnProperty(c) ||
-            !res.native.certificates[c]
-          )
-            continue;
-
-          // If it is filename, it could be everything
-          if (
-            res.native.certificates[c].length < 700 &&
-            (res.native.certificates[c].indexOf("/") !== -1 ||
-              res.native.certificates[c].indexOf("\\") !== -1)
-          ) {
-            var __cert = {
-              name: c,
-              type: "",
-            };
-            if (c.toLowerCase().indexOf("private") !== -1) {
-              __cert.type = "private";
-            } else if (
-              res.native.certificates[c].toLowerCase().indexOf("private") !== -1
-            ) {
-              __cert.type = "private";
-            } else if (c.toLowerCase().indexOf("public") !== -1) {
-              __cert.type = "public";
-            } else if (
-              res.native.certificates[c].toLowerCase().indexOf("public") !== -1
-            ) {
-              __cert.type = "public";
-            }
-            this.ioBrokerCerts.push(__cert);
-            continue;
-          }
-
-          var _cert = {
-            name: c,
-            type:
-              res.native.certificates[c].substring(
-                0,
-                "-----BEGIN RSA PRIVATE KEY".length
-              ) === "-----BEGIN RSA PRIVATE KEY" ||
-              res.native.certificates[c].substring(
-                0,
-                "-----BEGIN PRIVATE KEY".length
-              ) === "-----BEGIN PRIVATE KEY"
-                ? "private"
-                : "public",
-          };
-          if (_cert.type === "public") {
-            var m = res.native.certificates[c].split(
-              "-----END CERTIFICATE-----"
-            );
-            var count = 0;
-            for (var _m = 0; _m < m.length; _m++) {
-              if (m[_m].replace(/\r\n|\r|\n/, "").trim()) count++;
-            }
-            if (count > 1) _cert.type = "chained";
-          }
-
-          this.ioBrokerCerts.push(_cert);
-        }
-      }
-      return this.ioBrokerSystemConfig;
     },
   },
 };

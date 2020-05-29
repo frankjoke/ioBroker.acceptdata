@@ -50,6 +50,7 @@ Vue.directive("t", {
 import VueClipboard from "vue-clipboard2";
 Vue.use(VueClipboard);
 
+import store from './plugins/store'
 import Sockets from "./plugins/sockets";
 Vue.use(Sockets, {});
 Vue.prototype.$alert = function (...args) {
@@ -125,7 +126,7 @@ Vue.mixin({
       );
     },
 
-    async pSequence(arr, promise, wait) {
+/*     async pSequence(arr, promise, wait) {
       wait = wait || 0;
       if (!Array.isArray(arr) && typeof arr === "object")
         arr = Object.entries(arr).filter((o) => arr.hasOwnProperty(o[0]));
@@ -141,12 +142,14 @@ Vue.mixin({
       }
       return res;
     },
+    */
   }
-});
+ });
 
 new Vue({
   vuetify,
   i18n,
+  store,
 
   render: function (h) {
     return h(App);

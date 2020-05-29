@@ -24,7 +24,7 @@
     <v-data-table
       dense
       :headers="icolumns"
-      :items="items"
+      :items="items || []"
       :search="search"
       :disableSort="disableSort"
     >
@@ -138,7 +138,7 @@ export default {
       });
 
       this.items.push(ni);
-      this.snackText = $t("Added Row.");
+      this.snackText = this.$t("Added Row.");
     },
   },
   //  watch: {},

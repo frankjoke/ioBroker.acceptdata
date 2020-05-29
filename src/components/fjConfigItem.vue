@@ -148,7 +148,7 @@ export default {
       const found = items.filter((i) => ("" + i[vp]).trim() == v);
       return (
         found.length <= 1 ||
-        $t("This item can only be once per table in this field!")
+        this.$t("This item can only be once per table in this field!")
       );
     },
 

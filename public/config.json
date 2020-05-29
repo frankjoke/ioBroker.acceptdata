@@ -30,7 +30,7 @@
                         "!<a target='_blank' rel='noopener noreferrer' href='http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://myhost:port/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>"
                     ],
                     "style": "width='98%'",
-                    "eval": "{item.text = item.text.replace(/myhost:/g,this.$ioBroker.iobrokerHostConnection ? this.$ioBroker.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${conf.port}/`)}",
+                    "eval": "{item.text = item.text.replace(/myhost:/g,this.$store.state.iobrokerHostConnection ? this.$store.state.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${conf.port}/`)}",
                     "cols": 9,
                     "sm": 8
                 },
@@ -42,7 +42,7 @@
                         "!`http://myhost:port/<code>path</code>?data=...`"
                     ],
                     "style": "width='98%'",
-                    "eval": "{item.text = item.text.replace(/myhost:/g,this.$ioBroker.iobrokerHostConnection ? this.$ioBroker.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${conf.port}/`)}",
+                    "eval": "{item.text = item.text.replace(/myhost:/g,this.$store.state.iobrokerHostConnection ? this.$store.state.iobrokerHostConnection.hostname + ':' : 'my.iobroker.host:').replace(/\\:port\\//g,`:${conf.port}/`)}",
                     "cols": 3,
                     "sm": 4
                 },

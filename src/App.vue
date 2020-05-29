@@ -99,7 +99,7 @@
 <script>
 //import axios from "axios";
 
-import helper from "./plugins/helper";
+// import helper from "./plugins/helper";
 import ioBroker from "./plugins/iobroker";
 
 // let what = null;
@@ -116,7 +116,7 @@ function fix(number, digits, min, max) {
 
 export default {
   name: "App",
-  mixins: [helper, ioBroker],
+  mixins: [ioBroker],
 
   data: () => {
     return {

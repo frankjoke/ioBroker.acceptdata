@@ -38,11 +38,11 @@ export default {
       if (typeof text !== "string") text = JSON.stringify(text, null, 2);
       return this.$copyText(text).then(
         (e) => {
-          that.$alert("2|success:"+ $t("Copied to clipboard!"));
+          that.$alert("2|success:" + that.$t("Copied to clipboard!"));
           //          console.log(e);
         },
         (e) => {
-          that.$alert("warning:",$t("Cannot copy!"));
+          that.$alert("warning:", that.$t("Cannot copy!"));
           //          console.log(e);
         }
       );

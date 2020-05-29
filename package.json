@@ -9,66 +9,49 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
-    "test:js": "mocha --opts test/mocha.custom.opts",
-    "test:package": "mocha test/package --exit",
     "test:unit": "mocha test/unit --exit",
-    "test:integration": "mocha test/integration --exit",
+    "lint": "vue-cli-service lint",
+    "eslint": "eslint",
+    "i18n:report": "vue-cli-service i18n:report --src \"./src/**/*.?(js|vue)\" --locales \"./src/locales/**/*.json\"",
     "test": "npm run test:js && npm run test:package",
-    "eslint": "eslint"
+    "test:integration": "mocha test/integration --exit",
+    "test:js": "mocha --opts test/mocha.custom.opts",
+    "test:package": "mocha test/package --exit"
   },
-  "contributors": [
-    {
-      "name": "AlCalzone"
-    },
-    {
-      "name": "bluefox"
-    }
-  ],
-  "homepage": "https://github.com/frankjoke/ioBroker.acceptdata",
-  "license": "MIT",
-  "keywords": [
-    "JSON",
-    "URL",
-    "GET",
-    "POST"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/frankjoke/ioBroker.acceptdata"
-  },
+  "main": "acceptdata.js",
   "dependencies": {
     "@iobroker/adapter-core": "^2.4.0",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "vuex": "^3.4.0"
   },
   "devDependencies": {
     "@iobroker/testing": "^2.2.0",
-    "@mdi/font": "^5.2.45",
+    "@mdi/font": "^5.3.45",
     "@types/chai": "^4.2.11",
     "@types/chai-as-promised": "^7.1.2",
     "@types/gulp": "^4.0.6",
     "@types/mocha": "^7.0.2",
-    "@types/node": "^14.0.1",
+    "@types/node": "^14.0.5",
     "@types/proxyquire": "^1.3.28",
-    "@types/sinon": "^9.0.1",
+    "@types/sinon": "^9.0.4",
     "@types/sinon-chai": "^3.2.4",
-    "@vue/cli-plugin-eslint": "^4.3.1",
-    "@vue/cli-service": "^4.3.1",
+    "@vue/cli-plugin-eslint": "^4.4.1",
+    "@vue/cli-plugin-vuex": "^4.4.1",
+    "@vue/cli-service": "^4.4.1",
     "@vue/eslint-config-prettier": "^6.0.0",
     "axios": "^0.19.2",
     "babel-eslint": "^10.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "eslint": "^7.0.0",
+    "eslint": "^7.1.0",
     "eslint-plugin-prettier": "^3.1.3",
     "eslint-plugin-vue": "^6.2.2",
     "file-saver": "^2.0.2",
     "gulp": "^4.0.2",
-    "mocha": "^7.1.2",
+    "mocha": "^7.2.0",
     "prettier": "^2.0.5",
     "proxyquire": "^2.1.3",
-    "sass": "^1.26.5",
+    "sass": "^1.26.6",
     "sass-loader": "^8.0.2",
     "sinon": "^9.0.2",
     "sinon-chai": "^3.5.0",
@@ -79,17 +62,12 @@
     "vue-cli-plugin-i18n": "^1.0.1",
     "vue-cli-plugin-vuetify": "^2.0.5",
     "vue-clipboard2": "^0.3.1",
-    "vue-i18n": "^8.17.6",
+    "vue-i18n": "^8.18.1",
     "vue-socket.io": "^3.0.9",
     "vue-template-compiler": "^2.6.11",
-    "vuetify": "^2.2.28",
-    "vuetify-loader": "^1.4.3"
+    "vuetify": "^2.2.30",
+    "vuetify-loader": "^1.4.4"
   },
-  "main": "acceptdata.js",
-  "bugs": {
-    "url": "https://github.com/frankjoke/ioBroker.acceptdata/issues"
-  },
-  "readmeFilename": "README.md",
   "eslintConfig": {
     "root": true,
     "env": {
@@ -107,5 +85,29 @@
     "parserOptions": {
       "parser": "babel-eslint"
     }
+  },
+  "bugs": {
+    "url": "https://github.com/frankjoke/ioBroker.acceptdata/issues"
+  },
+  "contributors": [
+    {
+      "name": "AlCalzone"
+    },
+    {
+      "name": "bluefox"
+    }
+  ],
+  "homepage": "https://github.com/frankjoke/ioBroker.acceptdata",
+  "keywords": [
+    "JSON",
+    "URL",
+    "GET",
+    "POST"
+  ],
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankjoke/ioBroker.acceptdata"
   }
 }

@@ -2,7 +2,7 @@
 
 const helper = {
   filters: {
-    nFormat: (val, places, options) => {
+    nFormat(val, places, options) {
       if (
         options === undefined &&
         (typeof places === "object" || typeof places === "string")
