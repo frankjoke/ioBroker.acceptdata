@@ -165,7 +165,7 @@
 								],
 								"sortable": true,
 								"divider": true,
-								"default": "new path",
+								"default": "newPath",
 								"width": "19%"
 							},
 							{

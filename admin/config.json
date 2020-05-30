@@ -77,11 +77,11 @@
                             "value": "path",
                             "align": "start",
                             "rules": [
-                                "uniqueTableRule"
+                                "uniqueTableRule", "onlyWords"
                             ],
                             "sortable": true,
                             "divider": true,
-                            "default": "new path",
+                            "default": "newPath",
                             "width": "19%"
                         },
                         {

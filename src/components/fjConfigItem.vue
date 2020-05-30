@@ -152,6 +152,16 @@ export default {
       );
     },
 
+    onlyWords(val) {
+      if (Array.isArray(val))
+        val = val[0];
+//      debugger;
+      return (
+        !!val.match(/^[a-zA-Z0-9_\-]+$/) ||
+        this.$t("Only letters, numbers and `_` or `-` allowed!")
+      );
+    },
+
     stringToArrayWith(item, value, what) {
       what = what || ",";
       if (typeof value[item.value] === "string") {

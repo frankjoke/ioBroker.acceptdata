@@ -142,8 +142,7 @@ export default {
               }[c.type] || "";
       });
 
-      this.items.push(ni);
-      this.snackText = this.$t("Added Row.");
+      this.table.push(ni);
     },
   },
   //  watch: {},
