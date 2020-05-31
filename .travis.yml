@@ -15,19 +15,11 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - libcap2-bin
       - g++-6
-      - libusb-1.0-0.dev
-      - libudev-dev
-      - arp-scan
-      - bluetooth
-      - bluez
-      - libbluetooth-dev
-      - libudev-dev
+
 before_install:
   - 'if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then CC=gcc-6; fi'
   - 'if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then CC=g++-6; fi'
-  - 'if [[ "$TRAVIS_OS_NAME" = "linux" ]]; then sudo setcap ''cap_net_admin,cap_net_raw,cap_net_bind_service=+eip'' $(eval readlink -f `which node`); echo set caps; fi'
 before_script:
   - export NPMVERSION=$(echo "$($(which npm) -v)"|cut -c1)
   - 'if [[ $NPMVERSION == 5 ]]; then npm install -g npm; fi'
