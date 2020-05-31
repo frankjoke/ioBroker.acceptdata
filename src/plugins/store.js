@@ -117,6 +117,7 @@ export default new Vuex.Store({
       let rm = common.readme;
       const crm = state.iobrokerConfigFile.readme;
       if (crm && crm[lang]) rm = rm.replace("README.md", crm[lang]);
+      else rm = `https://translate.google.com/translate?sl=auto&tl=${lang}&u=${encodeURIComponent(rm)}`;
       commit("iobrokerReadme", rm);
       return rm;
     },
