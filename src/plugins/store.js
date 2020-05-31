@@ -83,7 +83,7 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    async loadConfigFile({ commit, state }) {
+    async loadConfigFile({ commit, state, dispatch }) {
       // console.log("action loadConfigFile", this);
       let config = null;
       try {
@@ -98,13 +98,13 @@ export default new Vuex.Store({
       }
       if (config) {
         commit("iobrokerConfigFile", config);
+        dispatch("setAdapterReadme");
         // this.adapterIcon = config.icon;
       }
     },
 
     setAdapterReadme({ commit, state }, params) {
-      let { lang, common } = params;
-      if (!lang && !common) return "";
+      let { lang, common } = params || {};
       //      console.log("setAdapterReadme", lang, common);
       // debugger;
       lang = lang || state.iobrokerLang;

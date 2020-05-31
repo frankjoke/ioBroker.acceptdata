@@ -129,6 +129,7 @@
     },
     "icon": "acceptdata.png",
     "readme": {
+        "de": "README_de.md",
         "en": "README.md"
     }
 }

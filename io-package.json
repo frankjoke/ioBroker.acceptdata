@@ -63,7 +63,7 @@
 		"loglevel": "info",
 		"mode": "daemon",
 		"type": "communication",
-		"compact": true,
+		"compact": false,
 		"connectionType": "local",
 		"dataSource": "push",
 		"materialize": true,
