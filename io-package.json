@@ -1,8 +1,11 @@
 {
 	"common": {
 		"name": "acceptdata",
-		"version": "0.2.1",
+		"version": "0.2.2",
 		"news": {
+			"0.2.2": {
+				"en": "added vuex, introduced config.json and words.json and removed compact mode..."
+			},
 			"0.2.1": {
 				"en": "Added Tables"
 			},
