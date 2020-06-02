@@ -18,7 +18,7 @@
     dense
     hide-details="auto"
     v-bind="attrs('min,max')"
-    v-model="cItem[cToolItem.value]"
+    v-model="number"
   />
   <v-text-field
     v-else-if="cToolItem.type == 'string'"
@@ -119,6 +119,17 @@ export default {
     },
     */
   },
+  computed: {
+    number: {
+      get() {
+        return this.cItem[this.cToolItem.value].toString();
+      },
+      set(value) {
+        const num = Number(value);
+        if (!isNaN(num)) this.$set(this.cItem, this.cToolItem.value, num);
+      },
+    },
+  },
   //  methods: {},
   methods: {
     removeChip(item) {
@@ -136,7 +147,7 @@ export default {
         return this.$t("Number should not be lower than ") + this.cToolItem.min;
       if (this.cToolItem.max != undefined && n > this.cToolItem.max)
         return (
-          this.$t("Number should not be bigger than ") + this.cToolItem.min
+          this.$t("Number should not be bigger than ") + this.cToolItem.max
         );
       return true;
     },
@@ -153,9 +164,8 @@ export default {
     },
 
     onlyWords(val) {
-      if (Array.isArray(val))
-        val = val[0];
-//      debugger;
+      if (Array.isArray(val)) val = val[0];
+      //      debugger;
       return (
         !!val.match(/^[a-zA-Z0-9_\-]+$/) ||
         this.$t("Only letters, numbers and `_` or `-` allowed!")
