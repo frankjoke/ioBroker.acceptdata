@@ -122,7 +122,12 @@ export default {
   computed: {
     number: {
       get() {
-        return this.cItem[this.cToolItem.value].toString();
+        let val = this.cItem[this.cToolItem.value];
+        if (val === undefined) val = 0;
+        if (typeof val === "string" || typeof val === "boolean")
+          val == Number(val);
+        if (isNaN(val)) val = 0;
+        return val.toString();
       },
       set(value) {
         const num = Number(value);
