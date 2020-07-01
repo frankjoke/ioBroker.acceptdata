@@ -11,7 +11,7 @@
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
 const express = require("express");
-//const bodyParser = require('body-parser')
+const bodyParser = require("body-parser");
 const { inspect } = require("util");
 const app = express();
 
@@ -245,12 +245,26 @@ class Acceptdata extends utils.Adapter {
 
     const stData = storeData.bind(this);
 
-    app.use(
-      express.json({
-        type: ["*.json", "*/json"],
-      })
-    );
+    // app.use(
+    //   express.json({
+    //     type: ["*.json", "*/json"],
+    //   })
+    // );
 
+    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(bodyParser.json());
+    app.use((req, res, next) => {
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+      );
+      // if (req.method === 'OPTIONS') {
+      //   res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
+      //   return res.status(200).json({});
+      // }
+      next();
+    });
     if (this.config.pathtable)
       for (const i of this.config.pathtable) {
         let { path, method, convert, enabled } = i;
@@ -289,12 +303,18 @@ class Acceptdata extends utils.Adapter {
               app.put("/" + path, (request, response) => {
                 this.log.info(
                   "PUT data received: " +
+                    typeof request.body +
+                    ", " +
+                    inspect(request.body, {
+                      depth: 2,
+                      color: true,
+                    }) +
                     inspect(request.query, {
                       depth: 2,
                       color: true,
                     })
                 );
-                const res = convertObj(request.query, convert);
+                const res = convertObj(request.body, convert);
                 this.log.debug(
                   "Converted Data: " +
                     inspect(res, {
