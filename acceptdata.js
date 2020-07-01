@@ -297,7 +297,7 @@ class Acceptdata extends utils.Adapter {
                 );
                 response.send("success: " + JSON.stringify(res, null));
                 await wait(1);
-                stData(res, path);
+                stData(res, name);
                 //      response.send("Hello from Express!");
               });
               break;
@@ -326,7 +326,7 @@ class Acceptdata extends utils.Adapter {
                 );
                 response.send("success");
                 await wait(1);
-                stData(res, path);
+                stData(res, name);
                 //      response.send("Hello from Express!");
               });
               break;
@@ -349,7 +349,7 @@ class Acceptdata extends utils.Adapter {
                 );
                 response.send("success");
                 await wait(1);
-                stData(res, path);
+                stData(res, name);
                 //      response.send("Hello from Express!");
               });
               break;
