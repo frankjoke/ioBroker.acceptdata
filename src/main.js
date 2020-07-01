@@ -47,6 +47,8 @@ Vue.directive("t", {
 });
 */
 
+
+
 import VueClipboard from "vue-clipboard2";
 Vue.use(VueClipboard);
 
@@ -78,11 +80,11 @@ Vue.mixin({
             else console.log("recursive object ", name, value);
           }
           stack.pop()
-          return no;        
+          return no;
         } else return obj;
       }
       return co(obj, []);
-//      return JSON.parse(this.myStringify(obj));
+      //      return JSON.parse(this.myStringify(obj));
     },
 
     myStringify(obj) {
@@ -100,15 +102,56 @@ Vue.mixin({
       that = that || this;
 
       if (typeof rule == "function") return rule;
-      else if (Array.isArray(rule)) {
-        rule = rule.map(i => i.trim());
+      // else if (Array.isArray(rule)) {
+      //   rule = rule.map(i => i.trim());
+      else if (typeof rule == "object") {
+        if (typeof rule.regexp == "string") {
+          const m = rule.regexp.match(/^\/(.*)\/([gimy])?$/);
+          const re = m ? new RegExp(...m.slice(1, 3)) : null;
+          let f;
+          let r = this.$t(rule.message);
+          if (re) {
+            f = (v) => {
+              if (Array.isArray(v))
+                v = v.slice(-1)[0];
+              return v && !!v.match(re) || r
+            };
+          } else {
+            f = (v) => {
+              if (Array.isArray(v))
+                v = v.slice(-1)[0];
+              // console.log(v);
+              return v && v.indexOf(rule.regexp) >= 0 || r;
+            }
+          }
+          return f.bind(that);
+        } else if (typeof rule.number == "string") {
+          const r = this.$t(rule.number);
+          // const m = rule.fixed ? /^[\d\-+]$/ : /^[\d\-+.,e]$/i;
+          const min = rule.min !== undefined && !isNaN(Number(rule.min)) ? Number(rule.min) : Number.NEGATIVE_INFINITY;
+          const max = rule.max !== undefined && !isNaN(Number(rule.max)) ? Number(rule.max) : Number.POSITIVE_INFINITY;
+          const has = Array.isArray(rule.has) ? rule.has : [];  
+          const n = rule.fixed ? parseInt : parseFloat;
+          // const m = rule.regexp.match(/^\/(.*)\/([gimy])?$/);
+          // const re = m ? new RegExp(...m.slice(1, 3)) : null;
+          // let ;
+          // let r = this.$t(rule.message);
+          const f = (v) => {
+            if (Array.isArray(v))
+              v = v.slice(-1)[0];
+            // console.log(v);
+            const x = n(v);
+            return !isNaN(x) && (x >= min && x <= max || has.indexOf(x) >=0) || r;
+          };
+          return f.bind(that);
+        }
       } else if (typeof rule == "string" && rule.trim()) {
         if (typeof that[rule] == "function") return that[rule].bind(that);
         rule = [...args, rule.trim()];
         try {
-          let b = rule[rule.length-1];
+          let b = rule[rule.length - 1];
           b = b.startsWith("return ") || b.startsWith("{") ? b : `return ${b};`
-          rule[rule.length-1] = b;
+          rule[rule.length - 1] = b;
           const f = new Function(...rule);
           return f.bind(that);
         } catch (e) {
@@ -126,25 +169,25 @@ Vue.mixin({
       );
     },
 
-/*     async pSequence(arr, promise, wait) {
-      wait = wait || 0;
-      if (!Array.isArray(arr) && typeof arr === "object")
-        arr = Object.entries(arr).filter((o) => arr.hasOwnProperty(o[0]));
-      const res = [];
-      for (let i of arr) {
-        if (res.length) await this.wait(wait);
-        try {
-          const r = await promise(i);
-          res.push(r);
-        } catch (e) {
-          res.push(e);
-        }
-      }
-      return res;
-    },
-    */
+    /*     async pSequence(arr, promise, wait) {
+          wait = wait || 0;
+          if (!Array.isArray(arr) && typeof arr === "object")
+            arr = Object.entries(arr).filter((o) => arr.hasOwnProperty(o[0]));
+          const res = [];
+          for (let i of arr) {
+            if (res.length) await this.wait(wait);
+            try {
+              const r = await promise(i);
+              res.push(r);
+            } catch (e) {
+              res.push(e);
+            }
+          }
+          return res;
+        },
+        */
   }
- });
+});
 
 new Vue({
   vuetify,

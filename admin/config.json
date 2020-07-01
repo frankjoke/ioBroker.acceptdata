@@ -89,6 +89,7 @@
                             "type": "select",
                             "select": [
                                 "GET",
+                                "PUT",
                                 "POST"
                             ],
                             "value": "method",

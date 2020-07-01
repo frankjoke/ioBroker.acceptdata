@@ -35,10 +35,10 @@
             :key="column.value"
             style="padding: 0px 1px 0px 1px;"
           >
-            <span v-if="column.value == '-'" class="d-flex justify-end">
+            <span v-if="column.value == '-'" class="d-flex justify-center">
               <fjB
                 v-if="disableSort"
-                :disabled="table.indexOf(item)<1"
+                :disabled="table.indexOf(item) < 1"
                 color="primary darken-4"
                 img="mdi-transfer-up"
                 @click.stop="itemMove(item, -1)"
@@ -47,7 +47,7 @@
               <fjB
                 v-if="disableSort"
                 color="primary darken-4"
-                :disabled="table.indexOf(item) >= (table.length - 1)"
+                :disabled="table.indexOf(item) >= table.length - 1"
                 img="mdi-transfer-down"
                 @click.stop="itemMove(item, +1)"
                 :tooltip="$t('move item one line down')"
@@ -151,10 +151,14 @@ export default {
       return [
         ...this.columns,
         {
-          text: this.$t("Edit"),
+          text: "\u270D",
           value: "-",
           align: "center",
-          width: this.searchDisabled ? "8%" : "4%",
+          filterable: false,
+          // justify: "center",
+          // class: "text-center",
+          sortable: false,
+          width: this.disableSort ? "5%" : "2%",
         },
       ];
     },

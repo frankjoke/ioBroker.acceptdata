@@ -25,13 +25,13 @@
     dense
     hide-details="auto"
     v-bind="attrs()"
-    v-model="cItem[cToolItem.value]"
+    v-model="cValue"
   />
   <v-checkbox
     v-else-if="cToolItem.type == 'checkbox' && cToolItem.label"
     dense
     hide-details="auto"
-    v-model="cItem[cToolItem.value]"
+    v-model="cValue"
     v-bind="attrs()"
   />
   <v-select
@@ -39,7 +39,7 @@
     :items="cToolItem.select"
     dense
     hide-details="auto"
-    v-model="cItem[cToolItem.value]"
+    v-model="cValue"
     v-bind="attrs()"
   />
   <v-textarea
@@ -48,14 +48,14 @@
     auto-grow
     row-height="15"
     hide-details="auto"
-    :rows="cItem[cToolItem.value].split(`\n`).length"
+    :rows="cValue.split(`\n`).length"
     dense
-    v-model="cItem[cToolItem.value]"
+    v-model="cValue"
     v-bind="attrs()"
   />
   <v-combobox
-    v-else-if="cToolItem.type == 'chips'"
-    v-model="cItem[cToolItem.value]"
+    v-else-if="cToolItem.type == 'chips' && Array.isArray(cValue)"
+    v-model="cValue"
     v-bind="attrs()"
     :items="cToolItem.select || []"
     chips
@@ -68,23 +68,23 @@
   <fjConfigTable
     v-else-if="cToolItem.type == 'table'"
     :columns="cToolItem.items"
-    :table="cItem[cToolItem.value]"
+    :table="cValue"
     v-bind="attrs()"
   />
   <v-simple-checkbox
     v-else-if="cToolItem.type == 'checkbox' && !cToolItem.label"
-    v-model="cItem[cToolItem.value]"
+    v-model="cValue"
     v-bind="attrs()"
   />
   <v-switch
     v-else-if="cToolItem.type == 'switch'"
     dense
     hide-details="auto"
-    v-model="cItem[cToolItem.value]"
+    v-model="cValue"
     v-bind="attrs()"
   />
   <div v-else v-bind="attrs()">
-    {{ cToolItem }} {{ cToolItem.value ? cItem[cToolItem.value] : "" }}
+    {{ cToolItem }} {{ cToolItem.value ? cValue : "" }}
   </div>
 </template>
 
@@ -122,7 +122,7 @@ export default {
   computed: {
     number: {
       get() {
-        let val = this.cItem[this.cToolItem.value];
+        let val = this.cValue;
         if (val === undefined) val = 0;
         if (typeof val === "string" || typeof val === "boolean")
           val == Number(val);
@@ -134,14 +134,20 @@ export default {
         if (!isNaN(num)) this.$set(this.cItem, this.cToolItem.value, num);
       },
     },
+
+    cValue: {
+      get() {
+        return this.cItem[this.cToolItem.value];
+      },
+      set(val) {
+        this.cItem[this.cToolItem.value] = val;
+      },
+    },
   },
   //  methods: {},
   methods: {
     removeChip(item) {
-      this.cItem[this.cToolItem.value].splice(
-        this.cItem[this.cToolItem.value].indexOf(item),
-        1
-      );
+      this.cValue.splice(this.cValue.indexOf(item), 1);
       //      this.chips = [...this.chips]
     },
 
@@ -172,16 +178,18 @@ export default {
       if (Array.isArray(val)) val = val[0];
       //      debugger;
       return (
-        !!val.match(/^[a-zA-Z0-9_\-]+$/) ||
-        this.$t("Only letters, numbers and `_` or `-` allowed!")
+        !!val.match(/^[\u00C0-\u017Fa-zA-Z0-9_\-\@\$\/]+$/) ||
+        this.$t("Only letters, numbers and `_ - @ $ /` are allowed!")
       );
     },
 
     stringToArrayWith(item, value, what) {
       what = what || ",";
-      if (typeof value[item.value] === "string") {
-        const ret = value[item.value].split(",").map((i) => i.trim());
+      const val = value[item.value];
+      if (typeof val === "string") {
+        const ret = val.split(",").map((i) => i.trim());
         if (ret.length == 1 && !ret[0]) ret.splice(0, 1);
+        // console.log(val, ret);
         value[item.value] = ret;
       }
     },
@@ -191,9 +199,8 @@ export default {
         "type",
         "value",
         "attrs",
-        "min",
-        "max",
         "convertold",
+        "select",
         "eval",
         "_translated",
       ];
@@ -267,8 +274,8 @@ export default {
       const rules = nattr.rules;
       const nrules = [];
       if (rules && rules.length) {
-        for (let i in rules) {
-          const rule = this.makeFunction(rules[i], this, "$");
+        for (let i of rules) {
+          const rule = this.makeFunction(i, this, "$");
           if (rule) nrules.push(rule);
         }
         nattr.rules = nrules;

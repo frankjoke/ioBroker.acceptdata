@@ -3,7 +3,7 @@ process.env.VUE_APP_IOBROKER = "localhost:8181";
 process.env.VUE_APP_ADAPTERNAME = "acceptdata";
 
 module.exports = {
-  transpileDependencies: ["vuetify", "vue-echarts", "resize-detector"],
+  transpileDependencies: ["vuetify", "resize-detector"],
   lintOnSave: process.env.NODE_ENV !== "production",
 
   pluginOptions: {

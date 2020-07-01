@@ -252,11 +252,12 @@ class Acceptdata extends utils.Adapter {
     );
 
     if (this.config.pathtable)
-      this.config.pathtable.map((i) => {
+      for (const i of this.config.pathtable) {
         let { path, method, convert, enabled } = i;
         if (enabled) {
           convert = convert || "$";
-          if (path.startsWith("/")) path = path.slice(1);
+          if (typeof path == "string" && path.startsWith("/"))
+            path = path.slice(1);
           this.log.info(
             `Installed path '${path}' with ${method}-method and convert: ${convert}`
           );
@@ -280,6 +281,28 @@ class Acceptdata extends utils.Adapter {
                     })
                 );
                 response.send("success: " + JSON.stringify(res, null));
+                wait(1).then((_) => stData(res, path));
+                //      response.send("Hello from Express!");
+              });
+              break;
+            case "PUT": // get
+              app.get("/" + path, (request, response) => {
+                this.log.info(
+                  "PUT data received: " +
+                    inspect(request.query, {
+                      depth: 2,
+                      color: true,
+                    })
+                );
+                const res = convertObj(request.query, convert);
+                this.log.debug(
+                  "Converted Data: " +
+                    inspect(res, {
+                      depth: 2,
+                      color: true,
+                    })
+                );
+                response.send("success");
                 wait(1).then((_) => stData(res, path));
                 //      response.send("Hello from Express!");
               });
@@ -308,7 +331,7 @@ class Acceptdata extends utils.Adapter {
               break;
           }
         }
-      });
+      }
 
     app.get("/*", (request, response) => {
       this.log.debug(
