@@ -267,18 +267,19 @@ class Acceptdata extends utils.Adapter {
     });
     if (this.config.pathtable)
       for (const i of this.config.pathtable) {
-        let { path, method, convert, enabled } = i;
+        let { name, path, method, convert, enabled } = i;
+        if (!name) name = path;
         if (enabled) {
           convert = convert || "$";
           if (typeof path == "string" && path.startsWith("/"))
             path = path.slice(1);
           this.log.info(
-            `Installed path '${path}' with ${method}-method and convert: ${convert}`
+            `Installed ${name} path: '${path}' with ${method}-method and convert: ${convert}`
           );
           switch (method) {
             case "GET": // get
             default:
-              app.get("/" + path, (request, response) => {
+              app.get("/" + path, async (request, response) => {
                 this.log.debug(
                   "GET data received: " +
                     inspect(request.query, {
@@ -295,13 +296,14 @@ class Acceptdata extends utils.Adapter {
                     })
                 );
                 response.send("success: " + JSON.stringify(res, null));
-                wait(1).then((_) => stData(res, path));
+                await wait(1);
+                stData(res, path);
                 //      response.send("Hello from Express!");
               });
               break;
             case "PUT": // get
-              app.put("/" + path, (request, response) => {
-                this.log.info(
+              app.put("/" + path, async (request, response) => {
+                this.log.debug(
                   "PUT data received: " +
                     typeof request.body +
                     ", " +
@@ -323,12 +325,13 @@ class Acceptdata extends utils.Adapter {
                     })
                 );
                 response.send("success");
-                wait(1).then((_) => stData(res, path));
+                await wait(1);
+                stData(res, path);
                 //      response.send("Hello from Express!");
               });
               break;
             case "POST": // post
-              app.post("/" + path, (request, response) => {
+              app.post("/" + path, async (request, response) => {
                 this.log.debug(
                   "POST data received: " +
                     inspect(request.body, {
@@ -345,7 +348,8 @@ class Acceptdata extends utils.Adapter {
                     })
                 );
                 response.send("success");
-                wait(1).then((_) => stData(res, path));
+                await wait(1);
+                stData(res, path);
                 //      response.send("Hello from Express!");
               });
               break;

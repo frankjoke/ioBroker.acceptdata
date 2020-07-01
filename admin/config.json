@@ -72,9 +72,9 @@
                     "cols": 12,
                     "items": [
                         {
-                            "text": "Path",
+                            "text": "Name",
                             "type": "string",
-                            "value": "path",
+                            "value": "name",
                             "align": "start",
                             "rules": [
                                 "uniqueTableRule", "onlyWords"
@@ -82,7 +82,20 @@
                             "sortable": true,
                             "divider": true,
                             "default": "newPath",
-                            "width": "19%"
+                            "width": "12%"
+                        },
+                        {
+                            "text": "Path",
+                            "type": "string",
+                            "value": "path",
+                            "align": "start",
+                            "rules": [
+                                "onlyWords"
+                            ],
+                            "sortable": true,
+                            "divider": true,
+                            "default": "newPath",
+                            "width": "12%"
                         },
                         {
                             "text": "Method",
@@ -96,7 +109,7 @@
                             "align": "center",
                             "sortable": false,
                             "divider": true,
-                            "width": "50px"
+                            "width": "5%"
                         },
                         {
                             "text": "Convert",
@@ -115,7 +128,7 @@
                             "sortable": false,
                             "align": "center",
                             "divider": true,
-                            "width": "45px"
+                            "width": "5%"
                         }
                     ]
                 }
