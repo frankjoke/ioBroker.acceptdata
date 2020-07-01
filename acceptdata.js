@@ -286,7 +286,7 @@ class Acceptdata extends utils.Adapter {
               });
               break;
             case "PUT": // get
-              app.get("/" + path, (request, response) => {
+              app.put("/" + path, (request, response) => {
                 this.log.info(
                   "PUT data received: " +
                     inspect(request.query, {
