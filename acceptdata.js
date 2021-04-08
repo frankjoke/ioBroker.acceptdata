@@ -10,8 +10,10 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
+const A = require("./fjadapter.js");
 const express = require("express");
 const bodyParser = require("body-parser");
+const getRawBody = require("raw-body");
 const { inspect } = require("util");
 const app = express();
 
@@ -251,7 +253,7 @@ class Acceptdata extends utils.Adapter {
     //   })
     // );
 
-    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(bodyParser.urlencoded({ extended: false }));
     app.use(bodyParser.json());
     app.use((req, res, next) => {
       res.header("Access-Control-Allow-Origin", "*");
@@ -271,8 +273,7 @@ class Acceptdata extends utils.Adapter {
         if (!name) name = path;
         if (enabled) {
           convert = convert || "$";
-          if (typeof path == "string" && path.startsWith("/"))
-            path = path.slice(1);
+          if (typeof path == "string" && path.startsWith("/")) path = path.slice(1);
           this.log.info(
             `Installed ${name} path: '${path}' with ${method}-method and convert: ${convert}`
           );
@@ -358,16 +359,17 @@ class Acceptdata extends utils.Adapter {
       }
 
     app.get("/*", (request, response) => {
-      this.log.debug(
-        "get unknown data received for '" +
-          request._parsedUrl.pathname +
-          "' with " +
-          inspect(request.query, {
-            depth: 2,
-            color: true,
-          })
-      );
-      response.send("success");
+      const str =
+        "get unknown path '" +
+        request._parsedUrl.pathname +
+        "' with " +
+        inspect(request.query, {
+          depth: 2,
+          color: true,
+        });
+
+      this.log.debug(str);
+      response.send(str);
       //      response.send("Hello from Express!");
     });
 
@@ -420,9 +422,7 @@ class Acceptdata extends utils.Adapter {
     if (state) {
       if (!state.from.endsWith(this.namespace))
         // The state was changed from somebody else!
-        this.log.info(
-          `state ${id} changed: ${state.val} (ack = ${state.ack}, from=${state.from})`
-        );
+        this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack}, from=${state.from})`);
     } else {
       // The state was deleted
       this.log.info(`state ${id} deleted`);
