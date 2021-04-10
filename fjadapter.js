@@ -26,9 +26,8 @@ class CacheP {
 
   async cacheItem(item, prefereCache = true, fun) {
     fun = fun || this._fun;
-    if (this._delay) await new Promise((res) => setTimeout(() => res(), this._delay));
+    if (this._delay) await this.wait(this._delay);
     if (prefereCache && this._cache[item] !== undefined) return this._cache[item];
-    if (!fun) fun = this._fun;
     // assert(A.T(fun) === 'function', `checkItem needs a function to fill cache!`);
     const res = await fun(item);
     this._cache[item] = res;
@@ -65,7 +64,7 @@ class CacheP {
 
 class HrTime {
   constructor(time) {
-    this._stime = time ? time : process.hrtime();
+    this.time = time;
   }
 
   get diff() {
@@ -78,50 +77,16 @@ class HrTime {
     return t[0].toString(10) + "." + ("0".repeat(9 - ns.length) + ns).slice(0, 6);
   }
 
+  toString() {
+    return this.text;
+  }
+
   get time() {
     return Number(this.text);
   }
 
   set time(t) {
     this._stime = t || process.hrtime();
-  }
-}
-
-class Sequence {
-  constructor(p, delay) {
-    this._p = p ? p : Promise.resolve();
-    this._delay = delay || 0;
-    return this;
-  }
-  get p() {
-    return this._p;
-  }
-  set p(val) {
-    this.add(val);
-    return val;
-  }
-
-  add(val, ...args) {
-    const fun = typeof val === "function" ? val : () => val;
-    if (this._delay) {
-      const n = () => new Promise((res) => setTimeout(() => res(), this._delay));
-      this._p = this._p.then(
-        () => n(),
-        () => n()
-      );
-    }
-    this._p = this._p.then(
-      () => fun(...args),
-      () => fun(...args)
-    );
-    return this;
-  }
-
-  then(res, rej) {
-    return (this._p = this._p.then(res, rej));
-  }
-  catch(rej) {
-    return (this._p = this._p.then((x) => x, rej));
   }
 }
 
@@ -138,7 +103,6 @@ const util = require("util"),
   axios = require("axios");
 
 const objects = {},
-  stq = new Sequence(),
   states = {},
   createdStates = {},
   sstate = {},
@@ -148,24 +112,13 @@ const objects = {},
 let adapter,
   aoptions,
   aname,
-  amain,
-  timer,
-  _onUnload = Promise.resolve(),
+  schedulers = [],
   _objChange,
   _stateChange,
-  _onStop,
   stopping = false,
-  inDebug = false,
-  curDebug = 1,
   // allStates = null,
   // stateChange = null,
   systemconf = null;
-let _messages = (mes) =>
-  Promise.resolve(
-    MyAdapter.W(`Message ${MyAdapter.O(mes)} received and no handler defined!`)
-  );
-
-console.log("Masync:", masync);
 
 function startAdapter(options) {
   if (!options) options = aoptions;
@@ -182,17 +135,44 @@ function startAdapter(options) {
     async ready() {
       // Initialize your adapter here
       MyAdapter.extendObject = adapter.extendObjectAsync.bind(adapter);
-
+      await plugins.call({
+        name: "adapter$init",
+        args: {
+          adapter,
+        },
+        handler: ({ adapter }) => {
+//          console.log("Default adapter$init handler is starting", adapter.name);
+          //          return amain && amain(adapter);
+        },
+      });
       await MyAdapter.initAdapter();
-      if (amain) amain(adapter);
+      await plugins.call({
+        name: "adapter$start",
+        args: {
+          adapter,
+        },
+        handler: async ({ adapter }, handler) => {
+//          MyAdapter.Df("Default adapter$start for %s is starting", adapter.namespace);
+          return handler;
+        },
+      });
+      await plugins.call({
+        name: "adapter$run",
+        args: {
+          adapter,
+        },
+        handler: async ({ adapter }, handler) => {
+//          MyAdapter.Df("Default adapter$run handler for %s is starting.", adapter.namespace);
+          return handler;
+        },
+      });
     },
     /* Is called when adapter shuts down - callback has to be called under any circumstances!
      * @param {() => void} callback
      */
     async unload(callback) {
       try {
-        await Promise.resolve(_onUnload ? _onUnload(null) : null).catch((e) => MyAdapter.Wf(e));
-        MyAdapter.stop(null, callback);
+        await MyAdapter.stop(0, false);
         callback();
       } catch (e) {
         callback();
@@ -252,7 +232,7 @@ function startAdapter(options) {
     //  * Using this method requires "common.message" property to be set to true in io-package.json
     //  * @param {ioBroker.Message} obj
     //  */
-    message(obj) {
+    /*     message(obj) {
       if (typeof obj === "object" && obj.command)
         MyAdapter.processMessage(
           obj
@@ -267,7 +247,20 @@ function startAdapter(options) {
       // 	}
       // }
     },
+ */
   });
+  if (plugins.get({ name: "adapter$message" }).length) {
+    options.message = (obj) => {
+      if (typeof obj === "object" && obj.command) {
+        plugins.call({
+          name: "adapter$message",
+          args: { message: obj },
+          handler: async ({ message }) => Array.D(`Message received: ${A.O(message)}`),
+        });
+        if (obj.callback) adapter.sendTo(obj.from, obj.command, "Message received", obj.callback);
+      }
+    };
+  }
   try {
     const utils = require("@iobroker/adapter-core");
     adapter = new utils.Adapter(options);
@@ -280,12 +273,12 @@ function startAdapter(options) {
   return adapter;
 }
 
-function slog(log, text) {
-  if (inDebug === undefined) return text;
-  return adapter && adapter.log && typeof adapter.log[log] === "function"
+function slog(log, text, val) {
+  adapter && adapter.log && typeof adapter.log[log] === "function"
     ? // eslint-disable-next-line no-console
       adapter.log[log](text)
-    : console.log(log + ": " + text);
+    : console.log(log + ":", text);
+  return val !== undefined ? val : text;
 }
 
 function addSState(n, id) {
@@ -302,8 +295,25 @@ function addSState(n, id) {
 }
 
 class MyAdapter {
+  static get sleep() {
+    return masync.sleep;
+  }
+
+  static get map() {
+    return masync.map;
+  }
+
+  static get asyncRoot() {
+    return masync.asyncRoot;
+  }
+
   static get plugins() {
     return plugins;
+  }
+
+  static addHooks(hooks, options = {}) {
+    if (typeof hooks === "function") hooks = { [hooks.name]: hooks };
+    return plugins.register(Object.assign({}, options, { hooks }));
   }
 
   static get config() {
@@ -325,37 +335,11 @@ class MyAdapter {
     return _objChange;
   }
 
-  static set onStop(val) {
-    _onStop = val;
-  }
-  static set messages(val) {
-    _messages = val;
-  }
-  static get messages() {
-    return _messages;
-  }
-  static set onUnload(val) {
-    _onUnload = val;
-  }
-
-  static async processMessage(obj) {
-    let res = null;
-    if (obj.command === "debug")
-      res = inDebug = isNaN(parseInt(obj.message))
-        ? this.parseLogic(obj.message)
-        : parseInt(obj.message);
-    else
-      res = _messages
-        ? await _messages(obj).catch((e) => this.Wf("Message execution error: %O", e))
-        : null;
-    // console.log(res, obj);
-    // this.D(`Message from '${obj.from}', command '${obj.command}', message '${this.S(obj.message)}' executed with result:"${this.S(res)}"`);
-    // err => this.W(`invalid Message ${this.O(obj)} caused error ${this.O(err)}`, err))
-    // return (obj.command === "debug" ? this.resolve(`debug set to '${inDebug = isNaN(parseInt(obj.message)) ?  this.parseLogic(obj.message) : parseInt(obj.message)}'`) : messages(obj))
-    if (obj.callback)
-      await adapter.sendTo(obj.from, obj.command, "Message received:" + res, obj.callback);
-    // await adapter.sendTo(obj.from, obj.command, res, obj.callback);
-    return res;
+  static scheduler(fn, timer) {
+    const sch = new masync.Scheduler(fn, timer);
+    schedulers.push(sch);
+    sch.start();
+    return sch;
   }
 
   static getObjects(name) {
@@ -432,7 +416,7 @@ class MyAdapter {
         //                    this.seriesOf(res, (i) => this.removeState(i.doc.common.name), 2)
         //                this.If('loaded adapter config: %O', adapter.config);
       }
-      MyAdapter.D(
+      this.D(
         `${adapter.name} received ${len} objects and ${
           this.ownKeys(states).length
         } states, with config ${this.ownKeys(adapter.config)}`
@@ -440,7 +424,7 @@ class MyAdapter {
       adapter.subscribeStates("*");
       if (adapter._objChange) adapter.subscribeObjects("*");
       //                .then(() => objChange ? MyAdapter.c2p(adapter.subscribeObjects)('*').then(a => MyAdapter.I('eso '+a),a => MyAdapter.I('eso '+a)) : MyAdapter.resolve())
-      this.I(aname + " initialization started...");
+      //      this.I(aname + " initialization started...");
       //			process.on('rejectionHandled', (reason, promise) => this.Wr(true, 'Promise problem rejectionHandled of Promise %s with reason %s', promise, reason));
       //			process.on('unhandledRejection', (reason, promise) => this.Wr(true, 'Promise problem unhandledRejection of Promise %O with reason %O', promise, reason));
     } catch (e) {
@@ -448,16 +432,15 @@ class MyAdapter {
     }
   }
 
-  static init(amodule, options, ori_main) {
+  static init(amodule, options) {
     //        assert(!adapter, `myAdapter:(${ori_adapter.name}) defined already!`);
-    amain = ori_main;
+    //    amain = ori_main;
     if (typeof options === "string")
       options = {
         name: options,
       };
     aoptions = Object.assign({}, options);
     aname = aoptions.name;
-    if (!amain) return;
     if (amodule && amodule.parent) {
       amodule.exports = (options) => (adapter = startAdapter(options));
     } else {
@@ -468,13 +451,20 @@ class MyAdapter {
   static get AI() {
     return adapter;
   }
+
+  static setConnected(value) {
+    createdStates[this.ain + "info.connection"] = "info.connection";
+    return adapter.setStateAsync("info.connection", { val: value, ack: true });
+  }
+
   static init2() {
     //            if (adapter) this.If('adpter: %O',adapter);
     assert(adapter && adapter.name, "myAdapter:(adapter) no adapter here!");
     aname = adapter.name;
 
-    inDebug = timer = stopping = false;
-    curDebug = 1;
+    //    inDebug =
+    stopping = false;
+    //    curDebug = 1;
     systemconf = null;
 
     this.writeFile = this.c2p(fs.writeFile);
@@ -520,21 +510,9 @@ class MyAdapter {
       )
     );
 
-    /*
-		adapter.on('message', obj => obj && this.processMessage(this.D(`received Message ${this.O(obj)}`, obj)))
-			.on('unload', callback => this.stop(false, callback))
-			.on('ready', () => this.resolve().then(() => this.initAdapter()).then(() => setImmediate(amain), e => this.Ef('Adapter Error, stop: %O', e)))
-			.on('objectChange', (id, obj) => obj && obj._id && _objChange && setTimeout((id, obj) => objChange(id, obj), 0, id, obj))
-			.on('stateChange', (id, state) => setTimeout((id, state) => {
-				(state && _stateChange && state.from !== 'system.adapter.' + this.ains ?
-					stateChange(id, state).catch(err => this.W(`Error in StateChange for ${id} = ${this.O(err)}`)) :
-					Promise.resolve())
-				.then(() => allStates && allStates(id, state).catch(e => this.W(`Error in AllStates for ${id} = ${this.O(e)}`)))
-					.then(() => states[id] = state);
-			}, 0, id, state));
-*/
     return adapter;
   }
+
   static idName(id) {
     if (objects[id] && objects[id].common) return objects[id].common.name; // + '(' + id + ')';
     if (sstate[id] && sstate[id] !== id) return id; // + '(' + sstate[id] + ')';
@@ -591,9 +569,11 @@ class MyAdapter {
   static nop(obj) {
     return obj;
   }
+
   static split(x, s) {
     return this.trim((typeof x === "string" ? x : `${x}`).split(s));
   }
+
   static trim(x) {
     return Array.isArray(x) ? x.map(this.trim) : typeof x === "string" ? x.trim() : `${x}`.trim();
   }
@@ -605,66 +585,52 @@ class MyAdapter {
 		}
 	 */
   static D(str, val) {
-    if (!inDebug || curDebug > Number(inDebug)) return val !== undefined ? val : str;
-    return (
-      inDebug ? slog("info", `debug: ${str}`) : slog("debug", str), val !== undefined ? val : str
-    );
+    return slog("debug", str, val);
   }
 
-  static Dr(str) {
-    if (!inDebug && curDebug > Number(inDebug)) return str;
-    else {
-      const s = this.f.apply(null, Array.prototype.slice.call(arguments, 1));
-      if (inDebug) slog("info", `debug: ` + s);
-      else slog("debug", s);
-    }
-    return str;
+  static Dr(str, ...args) {
+    return slog("debug", this.f(...args), str);
   }
+
   static Df(...str) {
-    if (!(!inDebug && curDebug > Number(inDebug))) {
-      str = this.f(...str);
-      return inDebug ? slog("info", "debug: " + str) : slog("debug", str);
-    }
+    return slog("debug", this.f(...str));
   }
-  static F() {
-    return util.format.apply(null, arguments);
+  static F(...args) {
+    return util.format(...args);
   }
-  static f() {
-    return util.format.apply(null, arguments).replace(/\n\s+/g, " ");
+  static f(...args) {
+    return this.F(...args).replace(/\n\s+/g, " ");
   }
   static I(l, v) {
-    return slog("info", l), v === undefined ? l : v;
+    return slog("info", l, v);
   }
 
-  static Ir(ret) {
-    slog("info", this.f.apply(null, Array.prototype.slice.call(arguments, 1)));
-    return ret;
+  static Ir(ret, ...args) {
+    return slog("info", this.f(...args), ret);
   }
-  static If() {
-    return slog("info", this.f.apply(null, arguments));
+  static If(...args) {
+    return slog("info", this.f(...args));
   }
 
-  static Wf() {
-    return slog("warn", this.f.apply(null, arguments));
+  static Wf(...args) {
+    return slog("warn", this.f(...args));
   }
-  static Wr(ret) {
-    slog("warn", this.f.apply(null, Array.prototype.slice.call(arguments, 1)));
-    return ret;
+  static Wr(ret, ...args) {
+    return slog("warn", this.f(...args), ret);
   }
-  static Er(ret) {
-    slog("error", this.f.apply(null, Array.prototype.slice.call(arguments, 1)));
-    return ret;
+  static Er(ret, ...args) {
+    return slog("error", this.f(...args), ret);
   }
 
   static W(l, v) {
-    return slog("warn", l), v === undefined ? l : v;
+    return slog("warn", l, v);
   }
   static E(l, v) {
-    return slog("error", l), v === undefined ? l : v;
+    return slog("error", l, v);
   }
 
-  static Ef() {
-    return slog("error", this.f.apply(null, arguments));
+  static Ef(...args) {
+    return slog("error", this.f(...args));
   }
 
   static toNumber(v) {
@@ -680,31 +646,6 @@ class MyAdapter {
     return stq;
   }
 
-  static get debug() {
-    return inDebug;
-  }
-  static set debug(y) {
-    inDebug = y;
-  }
-  static get timer() {
-    return timer;
-  }
-  static set timer(y) {
-    timer = y;
-  }
-
-  // static get stateChange() {
-  // 	return stateChange;
-  // }
-  // static set stateChange(y) {
-  // 	stateChange = (assert(typeof y === "function", "Error: StateChange handler not a function!"), y);
-  // }
-  // static get allStates() {
-  // 	return allStates;
-  // }
-  // static set allStates(y) {
-  // 	allStates = (assert(typeof y === "function", "Error: StateChange handler not a function!"), y);
-  // }
   static get name() {
     return aname;
   }
@@ -720,12 +661,7 @@ class MyAdapter {
   static get objects() {
     return objects;
   }
-  static get debugLevel() {
-    return curDebug;
-  }
-  static set debugLevel(y) {
-    curDebug = y;
-  }
+
   static get ains() {
     return adapter.namespace;
   }
@@ -754,16 +690,7 @@ class MyAdapter {
   static clone(obj) {
     return JSON.parse(JSON.stringify(obj));
   }
-  /*     static wait(time, arg) {
-        if (isNaN(Number(time)) || Number(time) < 0)
-            time = 0;
-        if (typeof arg === 'function') {
-            let args = Array.prototype.slice.call(arguments, 2);
-            return new Promise(res => setTimeout(r => res(arg.apply(null, args)), time));
-        }
-        return new Promise(res => setTimeout(res, time, arg));
-    }
- */
+
   static P(pv, res, rej) {
     if (pv instanceof Promise) return pv;
     if (pv && typeof pv.then === "function") return new Promise((rs, rj) => pv.then(rs, rj));
@@ -783,16 +710,15 @@ class MyAdapter {
     return this.nextTick(x);
   }
 
-  static async reject(x) {
-    await this.nextTick();
-    return Promise.reject(x);
+  static reject(x) {
+    return this.nextTick().then((_) => x);
   }
 
-  static wait(time, ...arg) {
+  static wait(time, arg) {
     time = parseInt(this.toNumber(time));
 
-    if (time < 0) return this.nextTick(...arg);
-    return new Promise((resolve) => setTimeout(() => resolve(...arg), time));
+    if (time <= 0) return this.nextTick(arg);
+    return new Promise((resolve) => setTimeout(() => resolve(arg), time));
   }
 
   static async retry(nretry, fn, wait, ...args) {
@@ -935,23 +861,27 @@ class MyAdapter {
     });
   }
 
-  static async stop(dostop, callback) {
-    // dostop
+  static async stop(dostop = 0, stopcall = false) {
     if (stopping) return;
+    schedulers.forEach((sch) => sch.stop());
+
     try {
-      if (_onStop) await _onStop(dostop);
+      await plugins.call({
+        name: "adapter$stop",
+        args: {
+          dostop,
+          stopcall,
+          adapter,
+        },
+        handler: async ({ dostop }, handler) => {
+          MyAdapter.I(`adapter$stop called with ${dostop}/${stopcall}!`);
+          return null;
+        },
+      });
     } finally {
       stopping = true;
-      if (timer) {
-        if (Array.isArray(timer)) timer.forEach((t) => clearInterval(t));
-        else clearInterval(timer);
-        timer = null;
-      }
     }
-    // this.I(
-    //   `Adapter disconnected and stopped with dostop(${dostop}) and callback(${!!callback})`
-    // );
-    if (!callback) {
+    if (stopcall) {
       const x = dostop < 0 ? 0 : dostop || 0;
       MyAdapter.Df(
         "Adapter will exit now with code %s and method %s!",
@@ -960,12 +890,7 @@ class MyAdapter {
       );
       if (adapter && adapter.terminate) adapter.terminate(x);
       else process.exit(x);
-    } else
-      try {
-        if (callback) callback();
-      } finally {
-        if (callback) callback();
-      }
+    }
   }
 
   static seriesOf(obj, promfn, delay) {
@@ -1023,48 +948,6 @@ class MyAdapter {
     const p = util.promisify(f);
     return b ? p.bind(b) : p;
   }
-  /*
-    static c1p(f) {
-        assert(typeof f === 'function', 'c1p (f) error: f is not a function!');
-        return function () {
-            const args = Array.prototype.slice.call(arguments);
-            return new Promise(res => (args.push((result) => res(result)), f.apply(this, args)));
-        };
-    }
-
-    static c1pe(f) { // one parameter != null = error
-        assert(typeof f === 'function', 'c1pe (f) error: f is not a function!');
-        return function () {
-            const args = Array.prototype.slice.call(arguments);
-            return new Promise((res, rej) => (args.push((result) => !result ? res(result) : rej(result)), f.apply(this, args)));
-        };
-    }
-
-	static retry(nretry, fn, arg, wait) {
-		assert(typeof fn === "function", "retry (,fn,) error: fn is not a function!");
-		nretry = parseInt(nretry);
-		nretry = isNaN(nretry) ? 2 : nretry;
-		return Promise.resolve(fn(arg)).catch(err => nretry <= 0 ? this.reject(err) : this.wait(wait > 0 ? wait : 0).then(() => this.retry(nretry - 1, fn, arg, wait)));
-	}
-
-	static
-	while ( fw,  fn,  time) {
-		assert(typeof fw === "function" && typeof fn === "function", "retry (fw,fn,) error: fw or fn is not a function!");
-		time = parseInt(time) || 0;
-		return !fw() ? this.resolve(true) :
-			fn().then(() => true, () => true)
-				.then(() => this.wait(time))
-				.then(() => this.while(fw, fn, time));
-	}
-
-	static repeat(  nretry,  fn, arg, len) {
-		assert(typeof fn === "function", "repeat (,fn,) error: fn is not a function!");
-		nretry = parseInt(nretry) || 0;
-		return fn(arg)
-			.then(res => this.reject(res))
-			.catch(res => nretry <= 0 ? this.resolve(res) : this.wait(len > 0 ? len : 0).then(() => this.repeat(nretry - 1, fn, arg)));
-	}
-*/
 
   static async repeat(nretry, fn, wait, ...args) {
     nretry = nretry <= 0 ? 2 : nretry || 2;
@@ -1093,72 +976,6 @@ class MyAdapter {
     });
   }
 
-  /*
-	static request(opt, value, transform) {
-		if (typeof opt === "string")
-			opt = this.url(opt.trim());
-		if (!(opt instanceof url.Url)) {
-			if (this.T(opt) !== "object" || !opt.hasOwnProperty("url"))
-				return Promise.reject(this.W(`Invalid opt or Url for request: ${this.O(opt)}`));
-			opt = this.url(opt.url, opt);
-		}
-		if (opt.json)
-			if (opt.headers) opt.headers.Accept = "application/json";
-			else opt.headers = {
-				Accept: "application/json"
-			};
-		if (!opt.protocol)
-			opt.protocol = "http:";
-		const fun = opt.protocol.startsWith("https") ? https.request : http.request;
-		//                this.D(`opt: ${this.O(opt)}`);
-		return new Promise((resolve, reject) => {
-			let data = new Buffer(""),
-				res;
-			const req = fun(opt, function (result) {
-				res = result;
-				//                MyAdapter.D(`status: ${MyAdapter.O(res.statusCode)}/${http.STATUS_CODES[res.statusCode]}`);
-				res.setEncoding(opt.encoding ? opt.encoding : "utf8");
-				if (MyAdapter.T(opt.status) === "array" && opt.status.indexOf(res.statusCode) < 0)
-					return reject(MyAdapter.D(`request for ${url.format(opt)} had status ${res.statusCode}/${http.STATUS_CODES[res.statusCode]} other than supported ${opt.status}`));
-				res.on("data", chunk => data += chunk)
-					.on("end", () => {
-						//                        res.removeAllListeners();
-						//                        req.removeAllListeners();
-						if (MyAdapter.T(transform) === "function")
-							data = transform(data);
-						if (opt.json) {
-							try {
-								return resolve(JSON.parse(data));
-							} catch (e) {
-								return err(`request JSON error ${MyAdapter.O(e)}`);
-							}
-						}
-						return resolve(data);
-					})
-					.on("error", e => err(e))
-					.on("close", () => err(`Connection closed before data was received!`));
-			}).on("error", e => err(e));
-
-			function err(e, msg) {
-				if (!msg)
-					msg = e;
-				//                if (res) res.removeAllListeners();
-				//                req && req.removeAllListeners();
-				//                if (req && !req.aborted) req.abort();
-				//                res && res.destroy();
-				//                MyAdapter.Df('err in response: %s = %O', msg);
-				return reject(msg);
-			}
-
-			if (opt.timeout)
-				req.setTimeout(opt.timeout, () => err("request timeout Error: " + opt.timeout + "ms"));
-			req.on("error", (e) => err("request Error: " + MyAdapter.O(e)))
-				.on("aborted", (e) => err("request aborted: " + MyAdapter.O(e)));
-			// write data to request body
-			return req.end(value, opt.encoding ? opt.encoding : "utf8");
-		});
-	}
-*/
   static async get(url, retry) {
     // get a web page either with http or https and return a promise for the data, could be done also with request but request is now an external package and http/https are part of nodejs.
     const options = {};
@@ -1353,8 +1170,6 @@ class MyAdapter {
   }
 }
 
-MyAdapter.Sequence = Sequence;
-//MyAdapter.Setter = Setter;
 MyAdapter.CacheP = CacheP;
 MyAdapter.HrTime = HrTime;
 module.exports = MyAdapter;

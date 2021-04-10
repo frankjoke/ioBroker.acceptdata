@@ -1,6 +1,6 @@
 {
   "name": "iobroker.acceptdata",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Accept Data can be used as a destination for devices which generate data and can post it to a device on a network in JSON or URL format",
   "author": {
     "name": "frankjoke",
@@ -23,7 +23,6 @@
   "dependencies": {
     "@iobroker/adapter-core": "^2.4.0",
     "axios": "^0.21.1",
-    "body-parser": "^1.19.0",
     "express": "^4.17.1",
     "modern-async": "^1.0.2",
     "plug-and-play": "^2.3.0",
@@ -44,7 +43,6 @@
     "@vue/cli-plugin-vuex": "^4.5.4",
     "@vue/cli-service": "^4.5.4",
     "@vue/eslint-config-prettier": "^6.0.0",
-    "vuex": "^3.5.1",
     "babel-eslint": "^10.1.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
@@ -61,8 +59,8 @@
     "sass-loader": "^9.0.3",
     "sinon": "^9.0.3",
     "sinon-chai": "^3.6.0",
-    "socket.io": "^2.3.0",
-    "socket.io-client": "^2.3.0",
+    "socket.io": "^2.4.1",
+    "socket.io-client": "^2.4.0",
     "typeface-roboto": "0.0.75",
     "vue": "^2.6.12",
     "vue-cli-plugin-i18n": "^1.0.1",
@@ -72,7 +70,8 @@
     "vue-socket.io": "^3.0.10",
     "vue-template-compiler": "^2.6.12",
     "vuetify": "^2.3.9",
-    "vuetify-loader": "^1.6.0"
+    "vuetify-loader": "^1.6.0",
+    "vuex": "^3.5.1"
   },
   "eslintConfig": {
     "root": true,

@@ -12,25 +12,67 @@
 const utils = require("@iobroker/adapter-core");
 const A = require("./fjadapter.js");
 const express = require("express");
-const bodyParser = require("body-parser");
+//const bodyParser = require("body-parser");
 const getRawBody = require("raw-body");
-const { inspect } = require("util");
 const app = express();
 
 // Load your modules here, e.g.:
 // const fs = require("fs");
-
+/*
 async function wait(num, arg) {
   let tout = null;
-  num = (Number(num) && num > 0 && Number(num)) || 0;
-  return new Promise((res) => {
+  num = (num > 0 && Number(num)) || 0;
+  await A.sleep(num);
+  return arg;
+     return new Promise((res) => {
     tout = setTimeout((_) => {
       if (tout) clearTimeout(tout);
       tout = null;
       res(arg);
     }, num);
   });
+ 
 }
+*/
+
+let AI = {};
+
+A.addHooks({
+  adapter$init: async ({ adapter }, handler) => {
+    AI = adapter;
+    A.D(`adapter$init for ${adapter.name} started.`);
+    return handler;
+  },
+  adapter$start: async ({ adapter }, handler) => {
+    A.D(`adapter$start for ${adapter.namespace} version ${adapter.version}`);
+    await A.setConnected(false);
+    return handler;
+  },
+  adapter$run: async ({ adapter }, handler) => {
+    A.D(`adapter$run for ${adapter.namespace}`);
+    await A.wait(1000);
+//    await A.cleanup("*");
+    await A.setConnected(true);
+    return handler;
+  },
+  /*
+  adapter$stop: async ({ adapter, dostop = 0, stopcall = false }, handler) => {
+    console.log("adapter$stop plugin with", adapter.name, dostop, stopcall);
+    return null;
+  },
+  adapter$message: async ({ message }, handler) => {
+      console.log("adapter$message received: " + A.O(message));
+      return null;
+    },
+ */
+});
+
+A.addHooks(async function adapter$stop({ adapter, dostop = 0, stopcall = false }, handler) {
+  A.Df("adapter$stop plugin for %s %s/%s", adapter.namespace, dostop, stopcall);
+  return handler && null;
+});
+
+A.init(module, "acceptdata");
 
 function convertObj(obj, pattern) {
   function myEval($) {
@@ -160,7 +202,7 @@ async function storeData(item, path) {
         val: item,
       });
     }
-    return wait(1);
+    return A.wait(1);
   }
 
   if (typeof item !== "object") return await storeItem(item);
@@ -253,8 +295,8 @@ class Acceptdata extends utils.Adapter {
     //   })
     // );
 
-    app.use(bodyParser.urlencoded({ extended: false }));
-    app.use(bodyParser.json());
+    app.use(express.urlencoded({ extended: false }));
+    app.use(express.json());
     app.use((req, res, next) => {
       res.header("Access-Control-Allow-Origin", "*");
       res.header(
@@ -297,7 +339,7 @@ class Acceptdata extends utils.Adapter {
                     })
                 );
                 response.send("success: " + JSON.stringify(res, null));
-                await wait(1);
+                await A.wait(1);
                 stData(res, name);
                 //      response.send("Hello from Express!");
               });
@@ -326,7 +368,7 @@ class Acceptdata extends utils.Adapter {
                     })
                 );
                 response.send("success");
-                await wait(1);
+                await A.wait(1);
                 stData(res, name);
                 //      response.send("Hello from Express!");
               });
@@ -349,7 +391,7 @@ class Acceptdata extends utils.Adapter {
                     })
                 );
                 response.send("success");
-                await wait(1);
+                await A.wait(1);
                 stData(res, name);
                 //      response.send("Hello from Express!");
               });
@@ -447,14 +489,12 @@ class Acceptdata extends utils.Adapter {
   // }
 }
 
-// @ts-ignore parent is a valid property on module
+/* // @ts-ignore parent is a valid property on module
 if (module.parent) {
   // Export the constructor in compact mode
-  /**
-   * @param {Partial<ioBroker.AdapterOptions>} [options={}]
-   */
   module.exports = (options) => new Acceptdata(options);
 } else {
   // otherwise start the instance directly
   new Acceptdata();
 }
+ */

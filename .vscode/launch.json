@@ -1,0 +1,22 @@
+{
+    // Verwendet IntelliSense zum Ermitteln möglicher Attribute.
+    // Zeigen Sie auf vorhandene Attribute, um die zugehörigen Beschreibungen anzuzeigen.
+    // Weitere Informationen finden Sie unter https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+//            "attachSimplePort": 9229,
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "name": "Attach Program",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+//            "args": ["--inspect=localhost:9229","--force","--logs","--nolazy"],
+//            "autoAttachChildProcesses": true,
+            "cwd": "c:\\iobroker\\Test2",
+//            "program": "c:\\iobroker\\Test2\\node_modules\\iobroker.acceptdata\\acceptdata.js"
+        }
+    ]
+}
