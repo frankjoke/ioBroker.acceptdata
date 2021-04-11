@@ -109,6 +109,8 @@ const objects = {},
   plugins = plugandplay(),
   mstate = {};
 
+plugins.$plugins = {};
+
 let adapter,
   aoptions,
   aname,
@@ -141,7 +143,7 @@ function startAdapter(options) {
           adapter,
         },
         handler: ({ adapter }) => {
-//          console.log("Default adapter$init handler is starting", adapter.name);
+          //          console.log("Default adapter$init handler is starting", adapter.name);
           //          return amain && amain(adapter);
         },
       });
@@ -152,7 +154,7 @@ function startAdapter(options) {
           adapter,
         },
         handler: async ({ adapter }, handler) => {
-//          MyAdapter.Df("Default adapter$start for %s is starting", adapter.namespace);
+          //          MyAdapter.Df("Default adapter$start for %s is starting", adapter.namespace);
           return handler;
         },
       });
@@ -162,7 +164,7 @@ function startAdapter(options) {
           adapter,
         },
         handler: async ({ adapter }, handler) => {
-//          MyAdapter.Df("Default adapter$run handler for %s is starting.", adapter.namespace);
+          //          MyAdapter.Df("Default adapter$run handler for %s is starting.", adapter.namespace);
           return handler;
         },
       });
@@ -184,9 +186,25 @@ function startAdapter(options) {
      * @param {string} id
      * @param {ioBroker.Object | null | undefined} obj
      */
-    objectChange(id, obj) {
+    async objectChange(id, obj) {
       //		MyAdapter.Df("Object %s was changed top %O", id, obj);
-      if (typeof _objChange == "function") setImmediate(() => _objChange(id, obj));
+      setImmediate(() =>
+        plugins
+          .call({
+            name: "adapter$objectChange",
+            args: {
+              adapter,
+              id,
+              obj,
+            },
+            handler: async ({ adapter, id, obj }, handler) => {
+              //                MyAdapter.Sf("Default adapter$stateChange handler for %s: %s.", id, A.O(state));
+              return handler;
+            },
+          })
+          .catch((err) => MyAdapter.W(`Error in ObjChange for ${id} = ${MyAdapter.O(err)}`))
+      );
+
       if (obj) {
         // The object was changed
         objects[id] = obj;
@@ -205,14 +223,25 @@ function startAdapter(options) {
      * @param {string} id
      * @param {ioBroker.State | null | undefined} state
      */
-    stateChange(id, state) {
+    async stateChange(id, state) {
       //		MyAdapter.Df("State %s was changed top %O", id, state);
-      if (_stateChange && (!state || state.from !== "system.adapter." + MyAdapter.ains))
-        setImmediate(() =>
-          _stateChange(id, state).catch((err) =>
-            MyAdapter.W(`Error in StateChange for ${id} = ${MyAdapter.O(err)}`)
-          )
-        );
+      //      if (!state || state.from !== "system.adapter." + MyAdapter.ains)
+      setImmediate(() =>
+        plugins
+          .call({
+            name: "adapter$stateChange",
+            args: {
+              adapter,
+              id,
+              state,
+            },
+            handler: async ({ adapter, id, state }, handler) => {
+              //                MyAdapter.Sf("Default adapter$stateChange handler for %s: %s.", id, A.O(state));
+              return handler;
+            },
+          })
+          .catch((err) => MyAdapter.W(`Error in StateChange for ${id} = ${MyAdapter.O(err)}`))
+      );
       // if (allStates)
       // 	allStates(id, state).catch(e => this.W(`Error in AllStates for ${id} = ${this.O(e)}`)));
       if (state) {
@@ -303,12 +332,24 @@ class MyAdapter {
     return masync.map;
   }
 
+  static setLogLevel(level = "info") {
+    return adapter.setForeignStateAsync("system.adapter." + adapter.namespace + ".logLevel", level);
+  }
+
   static get asyncRoot() {
     return masync.asyncRoot;
   }
 
+  static get inspect() {
+    return util.inspect;
+  }
+
   static get plugins() {
     return plugins;
+  }
+
+  static get $plugins() {
+    return plugins.$plugins;
   }
 
   static addHooks(hooks, options = {}) {
@@ -409,17 +450,14 @@ class MyAdapter {
         //                    this.If('adapter: %O', adapter);
         if (adapter.config.adapterConf && adapter.config.adapterConf.loglevel)
           adapter.config.loglevel = adapter.config.adapterConf.loglevel;
-        if (adapter.config.loglevel === "debug" || adapter.config.loglevel === "silly")
-          this.debug = true;
         //                    this.If('loglevel: %s, debug: %s', adapter.config.loglevel, MyAdapter.debug);
         //                if (adapter.config.forceinit)
         //                    this.seriesOf(res, (i) => this.removeState(i.doc.common.name), 2)
         //                this.If('loaded adapter config: %O', adapter.config);
       }
       this.D(
-        `${adapter.name} received ${len} objects and ${
-          this.ownKeys(states).length
-        } states, with config ${this.ownKeys(adapter.config)}`
+        `${adapter.name} received ${len} objects and ${this.ownKeys(states).length} states`
+        //        } states, with config ${this.ownKeys(adapter.config)}`
       );
       adapter.subscribeStates("*");
       if (adapter._objChange) adapter.subscribeObjects("*");
@@ -595,6 +633,18 @@ class MyAdapter {
   static Df(...str) {
     return slog("debug", this.f(...str));
   }
+
+  static Silly(str, val) {
+    return slog("silly", str, val);
+  }
+  static Sr(str, ...args) {
+    return slog("silly", this.f(...args), str);
+  }
+
+  static Sf(...str) {
+    return slog("silly", this.f(...str));
+  }
+
   static F(...args) {
     return util.format(...args);
   }
@@ -804,7 +854,7 @@ class MyAdapter {
     return a;
   }
 
-  static S(obj, level) {
+  static S(obj, level = 2) {
     return typeof obj === "string" ? obj : this.O(obj, level);
   }
 
@@ -875,6 +925,14 @@ class MyAdapter {
         },
         handler: async ({ dostop }, handler) => {
           MyAdapter.I(`adapter$stop called with ${dostop}/${stopcall}!`);
+          await MyAdapter.plugins.call({
+            name: "plugins$stop",
+            args: { plugins: A.$plugins, adapter },
+            handler: async ({ plugins }, handler) => {
+              A.Df("plugins$stop executed for %s", A.O(plugins));
+              return handler;
+            },
+          });
           return null;
         },
       });
@@ -1169,7 +1227,14 @@ class MyAdapter {
       .catch(() => false);
   }
 }
-
+const A = MyAdapter;
+/* 
+process.on('SIGTERM', function onSigterm () {
+  console.info('Got SIGTERM. Graceful shutdown start', new Date().toISOString())
+  // start graceul shutdown here
+  A.stop(0);
+});
+ */
 MyAdapter.CacheP = CacheP;
 MyAdapter.HrTime = HrTime;
 module.exports = MyAdapter;

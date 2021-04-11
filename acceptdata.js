@@ -11,65 +11,87 @@
 // you need to create an adapter
 const utils = require("@iobroker/adapter-core");
 const A = require("./fjadapter.js");
-const express = require("express");
-//const bodyParser = require("body-parser");
-const getRawBody = require("raw-body");
-const app = express();
 
 // Load your modules here, e.g.:
 // const fs = require("fs");
-/*
-async function wait(num, arg) {
-  let tout = null;
-  num = (num > 0 && Number(num)) || 0;
-  await A.sleep(num);
-  return arg;
-     return new Promise((res) => {
-    tout = setTimeout((_) => {
-      if (tout) clearTimeout(tout);
-      tout = null;
-      res(arg);
-    }, num);
-  });
- 
-}
-*/
-
-let AI = {};
 
 A.addHooks({
   adapter$init: async ({ adapter }, handler) => {
-    AI = adapter;
     A.D(`adapter$init for ${adapter.name} started.`);
+    const plugin$express = require("./expressPlugin.js");
+    A.plugins.register(plugin$express);
     return handler;
   },
+
   adapter$start: async ({ adapter }, handler) => {
+    A.setLogLevel("debug");
     A.D(`adapter$start for ${adapter.namespace} version ${adapter.version}`);
     await A.setConnected(false);
+    A.$plugins.config = { port: Number(adapter.config.port) || 3000 };
+    A.$plugins.methods = [];
+    await A.plugins.call({
+      name: "plugins$init",
+      args: { plugins: A.$plugins, adapter },
+      handler: async ({ plugins, adapter }, handler) => {
+        A.Sf("finished plugins$init created $plugins: %s", A.O(plugins));
+        return handler;
+      },
+    });
     return handler;
   },
+
   adapter$run: async ({ adapter }, handler) => {
     A.D(`adapter$run for ${adapter.namespace}`);
     await A.wait(1000);
-//    await A.cleanup("*");
+    if (adapter.config.pathtable)
+      for (let { name, path, method, convert, enabled } of adapter.config.pathtable) {
+        if (!name) name = path;
+        if (!enabled) continue;
+        convert = convert || "$";
+        if (typeof path == "string" && !path.startsWith("/")) path = "/" + path;
+        const me = A.$plugins.methods.find((i) => i.label.endsWith("." + method));
+        if (me) {
+          me.init({
+            path,
+            callback: async (res) => {
+              A.If("received to process from %s: %s", path, A.O(res));
+            },
+          });
+          A.D(`Installed ${name} path: '${path}' with ${method}-method`);
+        }
+      }
+    //    await A.cleanup("*");
+    await A.plugins.call({
+      name: "plugins$run",
+      args: { plugins: A.$plugins, adapter },
+      handler: async ({ plugins, adapter }, handler) => {
+        A.Sf("finished plugins$run created $plugins: %s", A.O(plugins));
+        return handler;
+      },
+    });
     await A.setConnected(true);
     return handler;
   },
-  /*
+
   adapter$stop: async ({ adapter, dostop = 0, stopcall = false }, handler) => {
-    console.log("adapter$stop plugin with", adapter.name, dostop, stopcall);
-    return null;
+    A.Sf("adapter$stop plugin for %s %s/%s", adapter.namespace, dostop, stopcall);
+    return handler;
   },
+  /*
   adapter$message: async ({ message }, handler) => {
       console.log("adapter$message received: " + A.O(message));
       return null;
     },
  */
-});
+  adapter$stateChange: async ({ adapter, id, state }, handler) => {
+    A.Sf("adapter$stateChange for %s %s", id, A.O(state));
+    return handler;
+  },
 
-A.addHooks(async function adapter$stop({ adapter, dostop = 0, stopcall = false }, handler) {
-  A.Df("adapter$stop plugin for %s %s/%s", adapter.namespace, dostop, stopcall);
-  return handler && null;
+  adapter$objectChange: async ({ adapter, id, obj }, handler) => {
+    A.Sf("adapter$objectChange for %s %s", id, A.O(obj));
+    return handler;
+  },
 });
 
 A.init(module, "acceptdata");
@@ -81,20 +103,17 @@ function convertObj(obj, pattern) {
       if (typeof n !== "number" || n < 0) return vn;
       return Number(vn.toFixed(n));
     }
-    // eslint-disable-next-line no-unused-vars
-    function FtoC(v, n) {
+    function FtoC(v, n = 1) {
       const vn = Number(v);
-      return toNum((5.0 * (vn - 32)) / 9, 1);
+      return toNum((5.0 * (vn - 32)) / 9, n);
     }
-    // eslint-disable-next-line no-unused-vars
-    function ItoMM(v, n) {
+    function ItoMM(v, n = 1) {
       const vn = Number(v);
-      return toNum(25.4 * vn, 1);
+      return toNum(25.4 * vn, n);
     }
-    // eslint-disable-next-line no-unused-vars
-    function CtoF(v, n) {
+    function CtoF(v, n = 1) {
       const vn = Number(v);
-      return toNum((vn * 9.0 + 160) / 5, 2);
+      return toNum((vn * 9.0 + 160) / 5, n);
     }
 
     let res = null;
@@ -207,7 +226,7 @@ async function storeData(item, path) {
 
   if (typeof item !== "object") return await storeItem(item);
   for (const i of Object.keys(item)) await storeItem(item[i], i);
-  return Promise.resolve();
+  return true;
 }
 
 class Acceptdata extends utils.Adapter {
