@@ -4,7 +4,7 @@ module.exports = {
     node: true,
     browser: true,
   },
-  extends: ["plugin:vue/essential", "@vue/prettier"],
+  extends: [],
   rules: {
     endOfLine: "off",
     "arrow-parens": "off",

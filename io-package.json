@@ -73,7 +73,7 @@
 		"connectionType": "local",
 		"dataSource": "push",
 		"messagebox": true,
-		"materialize": true,
+		"materialize": false,
 		"dependencies": [
 			{
 				"js-controller": ">=1.4.2"
@@ -117,6 +117,15 @@
 			"native": {}
 		},
 		{
+			"_id": "info.plugins",
+			"type": "channel",
+			"common": {
+				"name": "plugins",
+				"desc": "Folder to add plugins"
+			},
+			"native": {}
+		},
+		{
 			"_id": "info.connection",
 			"type": "state",
 			"common": {
@@ -126,6 +135,19 @@
 				"read": true,
 				"write": false,
 				"def": false
+			},
+			"native": {}
+		},
+		{
+			"_id": "info.plugins.$methods",
+			"type": "state",
+			"common": {
+				"role": "value",
+				"name": "Methods supported by adapter",
+				"type": "object",
+				"read": true,
+				"write": false,
+				"def": {"label":"none", "value":""}
 			},
 			"native": {}
 		}

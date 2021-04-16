@@ -1,5 +1,7 @@
 const A = require("../fjadapter");
 const express = require("express");
+var favicon = require("serve-favicon");
+var path = require("path");
 const getRawBody = require("raw-body");
 const app = express();
 
@@ -61,7 +63,6 @@ const plugin$express = {
       );
       app.use(express.urlencoded({ extended: false }));
       app.use(express.json());
-      app.use("/favicon.ico", express.static(__dirname + "/admin/icon.png"));
       app.use((req, res, next) => {
         res.header("Access-Control-Allow-Origin", "*");
         res.header(
@@ -78,6 +79,9 @@ const plugin$express = {
     },
     async plugins$run({ plugins, adapter }, handler) {
       A.Sf("plugin plugin$express runs plugins$run with %s", A.O(plugins));
+//      console.log(A.AI);
+      app.use(favicon(path.join(__dirname, "../admin", A.AI.adapterConfig.common.icon)));
+//      app.get("/favicon.ico", (req, res) => res.status(200));
       app.get("/*", (request, response) => {
         const str =
           "get unknown path '" + request._parsedUrl.pathname + "' with " + A.O(request.query);

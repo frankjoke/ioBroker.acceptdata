@@ -37,10 +37,12 @@ for var in "$@"; do
 #    sudo cp $cpath/$var $dpath
 done
 
-for var in lib admin;  do
+for var in lib admin plugins;  do
     echo rsync -r -v -u $cpath/$var $dpath/
     rsync -r -v -u --delete $cpath/$var $dpath/
 done
+
+rsync -r -v -u --delete $cpath/admin $dpath/../../iobroker-data/files/$a.admin
 
 echo "all done!"
 ls -CFA $dpath

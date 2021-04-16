@@ -1,5 +1,25 @@
 {
 	"i18n-ally.localesPaths": [
 		"src/locales"
-	]
+	],
+	"eslint.options": {
+		"useEslintrc": false,
+		"parserOptions": {
+			"ecmaVersion": 2018
+		},
+		"env": {
+			"es6": true
+		}
+	},
+	"jshint.options": {
+		"esversion": 8,
+		"-W097": false,
+		"-W117": false,
+		"devel": true,
+		"strict": "global",
+		"globals": {
+			"alert": false
+		  }
+	  },
+		"liveServer.settings.port": 1236
 }

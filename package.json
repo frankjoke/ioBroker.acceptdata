@@ -21,7 +21,8 @@
     "express": "^4.17.1",
     "modern-async": "^1.0.2",
     "plug-and-play": "^2.3.0",
-    "raw-body": "^2.4.1"
+    "raw-body": "^2.4.1",
+    "serve-favicon": "^2.5.0"
   },
   "devDependencies": {
     "@iobroker/testing": "^2.4.4",
