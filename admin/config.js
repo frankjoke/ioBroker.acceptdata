@@ -122,6 +122,7 @@ function config() {
               {
                 headerName: "Method / Source / Path / InputConversion",
                 itype: "$ilist",
+                size: "small",
                 sortable: false,
                 width: "12%",
                 align: "left",
@@ -143,20 +144,25 @@ function config() {
                   {
                     itype: "$select",
                     tooltip: "please select method",
-                    iselect: "none=|JSON=JSON|XML=XML|log=log",
+                    iselect: ($, props, Iob) => {
+                      const sel = Iob.getState(".info.plugins.$inputtypes");
+                      let res = (sel && sel.val) || [];
+//                      console.log(sel, res);
+                      return res;
+                    },
                     hideItem: (props, Iob) => {
                       const sel = Iob.getState(".info.plugins.$methods");
                       let res = (sel && sel.val) || [];
                       const method = props.inative["method"];
                       const f = res.find((i) => i.value == method);
-                                        console.log(res, method, f);
+//                      console.log(res, method, f);
                       return !f || (f && !f.iconv);
                     },
                     field: "iconv",
                     defaultValue: "",
                     fullWidth: false,
                     width: "100px",
-                    spaces: 2
+                    spaces: 2,
                   },
                   {
                     itype: "$textarea",
@@ -164,7 +170,7 @@ function config() {
                     placeholder: "read source path or options",
                     field: "path",
                     rowsMin: "1",
-                    lineBreak:true,
+                    lineBreak: true,
                   },
                   {
                     itype: "$textarea",
@@ -172,7 +178,7 @@ function config() {
                     field: "write",
                     cols: 40,
                     rowsMin: "1",
-                    lineBreak:true,
+                    lineBreak: true,
                     hideItem: (props, Iob) => {
                       const sel = Iob.getState(".info.plugins.$methods");
                       let res = (sel && sel.val) || [];
@@ -221,9 +227,8 @@ function config() {
                     },
                     field: "converter",
                     fullWidth: false,
-                    lineBreak:true,
                     defaultValue: "none",
-                    width: "200px"
+                    width: "200px",
                   },
                   {
                     field: "convert",
@@ -231,13 +236,15 @@ function config() {
                     cols: 40,
                     rowsMin: "1",
                     defaultValue: "$",
-                    placeholder: "Please enter the converter formula or options, '$' is the simplest!",
+                    lineBreak: true,
+                    placeholder:
+                      "Please enter the converter formula or options, '$' is the simplest!",
                     hideItem: (props, Iob) => {
                       const sel = Iob.getState(".info.plugins.$converters");
                       let res = (sel && sel.val) || [];
                       const method = props.inative["converter"] || "none";
                       const f = res.find((i) => i.value == method);
-//                      console.log(res, method, f);
+                      //                      console.log(res, method, f);
                       return !f || (f && !f.options);
                     },
                   },
