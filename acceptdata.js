@@ -3,14 +3,8 @@
 // @ts-nocheck
 "use strict";
 
-/*
- * Created with @iobroker/create-adapter v1.23.0
- */
-
-// The adapter-core module gives you access to the core ioBroker functions
-// you need to create an adapter
-//const utils = require("@iobroker/adapter-core");
-const A = require("./fjadapter.js");
+const A = require("./fjadapter.js"),
+  schedule = require("node-schedule");
 
 // Load your modules here, e.g.:
 // const fs = require("fs");
@@ -20,24 +14,60 @@ A.addHooks({
     A.D(`adapter$init for ${adapter.name} started.`);
     const installPlugins = require("./plugins/index.js");
     installPlugins();
+    const noConv = {
+      label: "none",
+      value: "none",
+      convert: async (val, functions, options) => val,
+    };
+    Object.assign(A.$plugins, {
+      config: { port: Number(adapter.config.port)!==NaN && Number(adapter.config.port)  || 3000 },
+      functions: {},
+      methods: [],
+      methodReads: {},
+      methodWrites: {},
+      converters: [noConv],
+      converterConverts: {},
+      inputtypes: [noConv],
+      inputConverts: {},
+    });
+    await A.setConnected(false);
     return handler;
   },
 
   adapter$start: async ({ adapter }, handler) => {
     A.setLogLevel("debug");
     A.D(`adapter$start for ${adapter.namespace} version ${adapter.version}`);
-    await A.setConnected(false);
-    A.$plugins.config = { port: Number(adapter.config.port) || 3000 };
-    A.$plugins.methods = [];
     await A.plugins.call({
       name: "plugins$init",
       args: { plugins: A.$plugins, adapter },
       handler: async ({ plugins, adapter }, handler) => {
-        A.Df("finished plugins$init created $plugins: %s", A.O(plugins));
-        await A.AI.setStateAsync(
-          "info.plugins.$methods",
-          { val: plugins.methods.map(({label,value}) => ({label, value})), ack: true }
-        );
+        await A.AI.setStateAsync("info.plugins.$methods", {
+          val: plugins.methods.map(({ label, value, hasSchedule, read, write, iconv }) => {
+            plugins.methodReads[value] = read;
+            plugins.methodWrites[value] = write;
+            return { label, value, hasSchedule, write: !!write, iconv };
+          }),
+          ack: true,
+        });
+        await A.AI.setStateAsync("info.plugins.$converters", {
+          val: plugins.converters.map(({ label, value, options, convert }) => {
+            plugins.converterConverts[value] = convert;
+            return { label, value, options };
+          }),
+          ack: true,
+        });
+        await A.AI.setStateAsync("info.plugins.$inputtypes", {
+          val: plugins.inputtypes.map(({ label, value, convert }) => {
+            plugins.inputConverts[value] = convert;
+            return { label, value };
+          }),
+          ack: true,
+        });
+        await A.AI.setStateAsync("info.plugins.$functions", {
+          val: Object.keys(plugins.functions).join(", "),
+          ack: true,
+        });
+        A.D("finished plugins$init created $plugins: %o", plugins);
         return handler;
       },
     });
@@ -48,17 +78,54 @@ A.addHooks({
     A.D(`adapter$run for ${adapter.namespace}`);
     await A.wait(1000);
     if (adapter.config.pathtable)
-      for (let { name, path, method, convert, enabled } of adapter.config.pathtable) {
-        if (!name) name = path;
+      for (const i of adapter.config.pathtable) {
+        let { name, path, method, convert, enabled, schedule = "*:1" } = i;
+        //        if (!name) name = path;
         if (!enabled) continue;
+        const nitem = Object.assign({}, i);
+        runItems.push(nitem);
         convert = convert || "$";
-        if (typeof path == "string" && !path.startsWith("/")) path = "/" + path;
         const me = A.$plugins.methods.find((i) => i.value == method);
+        nitem.hasSchedule = me && me.hasSchedule;
+        if (nitem.hasSchedule) {
+          const reIsTime = /^([\d\-\*\,\/]+)\s*:\s*([\d\-\*\,\/]+)\s*(?::\s*([\d\-\*\,\/]+))?$/,
+            reIsSchedule = /^[\d\-\/\*\,]+(\s+[\d\/\-\*,]+){4,5}$/;
+
+          let sch = schedule.trim(),
+            scht = sch.match(reIsTime);
+          if (scht) {
+            if (scht[3] === undefined) scht[3] = (Object.keys(schedList).length % 58) + 1;
+            sch = `${scht[3]} ${scht[2]} ${scht[1]} * * *`;
+          } else if (sch.match(/^\d+[smh]$/))
+            switch (sch.slice(-1)) {
+              case "s":
+                sch = `*/${sch.slice(0, -1)} * * * * *`;
+                break;
+              case "m":
+                sch = `*/${sch.slice(0, -1)} * * * *`;
+                break;
+              case "h":
+                sch = `0 */${sch.slice(0, -1)} * * *`;
+                break;
+            }
+          if (sch && sch.match(reIsSchedule)) {
+            nitem.hasSchedule = sch;
+            nitem.read = A.$plugins.methodReads[method];
+            if (schedList[sch]) schedList[sch].push(nitem);
+            else {
+              schedList[sch] = [nitem];
+              schedList[sch].scheduler = null;
+              //              scheds[sch] = null;
+            }
+            A.D("Scheduled %o", nitem);
+          } else A.W(`Invalid schedule ${sch} from '${schedule}' in item ${name}`);
+        }
         if (me && me.init) {
           await me.init({
             path,
             callback: async (res) => {
-              A.If("received to process from %s: %s", path, A.O(res));
+              A.I("received to process from %s: %o", path, res);
+              await runItem(i, res);
             },
           });
           A.D(`Installed ${name} path: '${path}' with ${method}-method`);
@@ -69,7 +136,22 @@ A.addHooks({
       name: "plugins$run",
       args: { plugins: A.$plugins, adapter },
       handler: async ({ plugins, adapter }, handler) => {
-        A.Sf("finished plugins$run created $plugins: %s", A.O(plugins));
+        A.S("finished plugins$run created $plugins: %s", A.O(plugins));
+        for (let sh in schedList) {
+          const scheduler = schedule.scheduleJob(sh, () =>
+            schedList[sh].map(async (x) => {
+              const res = x.read ? await x.read(x.path) : null;
+              //              A.D("Schedule now %s with path '%s': %o", x.name, x.path, res);
+              runItem(x, res);
+            })
+          );
+          schedList[sh].scheduler = scheduler;
+          A.D(
+            `Will poll every '${sh}': ${schedList[sh].map((x) => x.name)}. %s`,
+            scheduler.nextInvocation()
+          );
+        }
+
         return handler;
       },
     });
@@ -78,7 +160,13 @@ A.addHooks({
   },
 
   adapter$stop: async ({ adapter, dostop = 0, stopcall = false }, handler) => {
-    A.Sf("adapter$stop plugin for %s %s/%s", adapter.namespace, dostop, stopcall);
+    A.S("adapter$stop plugin for %s %s/%s", adapter.namespace, dostop, stopcall);
+    for (let sh in schedList) {
+      sh = schedList[sh];
+      A.D("Cancel Job %s, %s", sh.scheduler.nextInvocation(), sh.map((x) => x.name).join(", "));
+      sh.scheduler.cancel();
+    }
+
     return handler;
   },
   /*
@@ -88,17 +176,35 @@ A.addHooks({
     },
  */
   adapter$stateChange: async ({ adapter, id, state }, handler) => {
-    A.Sf("adapter$stateChange for %s %s", id, A.O(state));
+    A.S("adapter$stateChange for %s %s", id, A.O(state));
     return handler;
   },
 
   adapter$objectChange: async ({ adapter, id, obj }, handler) => {
-    A.Sf("adapter$objectChange for %s %s", id, A.O(obj));
+    A.S("adapter$objectChange for %s %s", id, A.O(obj));
     return handler;
   },
 });
 
 A.init(module, "acceptdata");
+
+const runItems = [];
+const schedList = {};
+
+async function runItem(item, arg) {
+  const $pi = A.$plugins;
+  A.D("runItem %s: %s with data %o", item.name, item, arg);
+  try {
+    let fun = $pi.inputConverts[item.iconv];
+    if (item.iconv && typeof fun === "function") arg = await fun(arg, $pi.functions, item);
+    fun = $pi.converterConverts[item.converter];
+    if (typeof fun === "function") arg = await fun(arg, $pi.functions, item.convert);
+    return arg;
+  } catch (e) {
+    const ret = A.W("Error when processing %s with Data %o: %o", item.name, arg, e);
+    return Promise.reject(ret);
+  }
+}
 
 function convertObj(obj, pattern) {
   function myEval($) {

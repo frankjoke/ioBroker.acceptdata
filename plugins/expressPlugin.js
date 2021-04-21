@@ -5,35 +5,39 @@ var path = require("path");
 const getRawBody = require("raw-body");
 const app = express();
 
+function makePath(path) {
+  path = path.trim();
+  return path.startsWith("/") ? path :  "/" + path;
+}
+
 const plugin$express = {
   name: "plugin$express",
   hooks: {
     async plugins$init({ plugins, adapter }, handler) {
-      A.Sf("plugin plugin$express runs plugins$init with %s", A.O(plugins));
+      A.S("plugin plugin$express runs plugins$init with %s", A.O(plugins));
       plugins.methods.push(
         {
-          name: "GET",
           label: "server.GET",
           value: "express.get",
           init: async ({ path, callback }) => {
-            A.Sf("Install %s with path %s!", "server.GET", path);
-            app.get(path, async (request, response) => {
-              const s = A.Silly("GET data received: " + A.O(request.query));
+            A.S("Install %s with path %s!", "server.GET", path);
+            app.get(makePath(path), async (request, response) => {
+              const s = A.S("GET data received: " + A.O(request.query));
               response.send("success: " + s);
               await A.wait(1);
               callback && callback(request.query);
               //      response.send("Hello from Express!");
             });
+            return null;
           },
         },
         {
-          name: "POST",
           label: "server.POST",
           value: "express.post",
           init: async ({ path, callback }) => {
-            A.Sf("Install %s with path %s!", "server.POST", path);
-            app.post(path, async (request, response) => {
-              const s = A.Silly("GET data received: " + A.O(request.query));
+            A.S("Install %s with path %s!", "server.POST", path);
+            app.post(makePath(path), async (request, response) => {
+              const s = A.S("GET data received: " + A.O(request.query));
               response.send("success: " + s);
               await A.wait(1);
               callback && callback(request.query);
@@ -42,13 +46,12 @@ const plugin$express = {
           },
         },
         {
-          name: "PUT",
           label: "server.PUT",
           value: "express.put",
           init: async ({ path, callback }) => {
-            A.Sf("Install %s with path %s!", "server.PUT", path);
-            app.put(path, async (request, response) => {
-              const s = A.Sf(
+            A.S("Install %s with path %s!", "server.PUT", path);
+            app.put(makePath(path), async (request, response) => {
+              const s = A.S(
                 "PUT data received: %s, %s, %s",
                 typeof request.body,
                 A.O(request.body),
@@ -78,7 +81,7 @@ const plugin$express = {
       return handler;
     },
     async plugins$run({ plugins, adapter }, handler) {
-      A.Sf("plugin plugin$express runs plugins$run with %s", A.O(plugins));
+      A.S("plugin plugin$express runs plugins$run with %s", A.O(plugins));
 //      console.log(A.AI);
       app.use(favicon(path.join(__dirname, "../admin", A.AI.adapterConfig.common.icon)));
 //      app.get("/favicon.ico", (req, res) => res.status(200));
@@ -102,7 +105,7 @@ const plugin$express = {
       return handler;
     },
     async plugins$stop({ plugins, adapter }, handler) {
-      A.Sf("plugin plugin$express runs plugins$stop and closes express.");
+      A.S("plugin plugin$express runs plugins$stop and closes express.");
       app.close();
       return handler;
     },

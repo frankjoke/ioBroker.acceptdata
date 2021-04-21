@@ -120,43 +120,128 @@ function config() {
                 width: "10%",
               },
               {
-                headerName: "Method",
-                itype: "$select",
-                tooltip: "please select methot for path (GET,PUT or POST)",
-                //                iselect: "|GET|PUT|POST",
-                iselect: ($, props, Iob) => {
-                  const sel = Iob.getState(".info.plugins.$methods");
-                  let res = (sel && sel.val) || [{label:"none", value:""}];
-                  return res;
-                  //                  return sel && sel.val || "GET=GET";
-                },
-                field: "method",
-                align: "center",
-                defaultValue: "GET",
+                headerName: "Method / Source / Path / InputConversion",
+                itype: "$ilist",
                 sortable: false,
-                width: "7%",
+                width: "12%",
+                align: "left",
+                sortable: false,
+                items: [
+                  {
+                    itype: "$select",
+                    tooltip: "please select method",
+                    iselect: ($, props, Iob) => {
+                      const sel = Iob.getState(".info.plugins.$methods");
+                      let res = (sel && sel.val) || [];
+                      return res;
+                    },
+                    field: "method",
+                    defaultValue: "none",
+                    fullWidth: false,
+                    width: "150px",
+                  },
+                  {
+                    itype: "$select",
+                    tooltip: "please select method",
+                    iselect: "none=|JSON=JSON|XML=XML|log=log",
+                    hideItem: (props, Iob) => {
+                      const sel = Iob.getState(".info.plugins.$methods");
+                      let res = (sel && sel.val) || [];
+                      const method = props.inative["method"];
+                      const f = res.find((i) => i.value == method);
+                                        console.log(res, method, f);
+                      return !f || (f && !f.iconv);
+                    },
+                    field: "iconv",
+                    defaultValue: "",
+                    fullWidth: false,
+                    width: "100px",
+                    spaces: 2
+                  },
+                  {
+                    itype: "$textarea",
+                    cols: 40,
+                    placeholder: "read source path or options",
+                    field: "path",
+                    rowsMin: "1",
+                    lineBreak:true,
+                  },
+                  {
+                    itype: "$textarea",
+                    placeholder: "enter here write command",
+                    field: "write",
+                    cols: 40,
+                    rowsMin: "1",
+                    lineBreak:true,
+                    hideItem: (props, Iob) => {
+                      const sel = Iob.getState(".info.plugins.$methods");
+                      let res = (sel && sel.val) || [];
+                      const method = props.inative["method"];
+                      const f = res.find((i) => i.value == method);
+                      //                  console.log(res, method);
+                      return !f || (f && !f.write);
+                    },
+                  },
+                ],
               },
               {
-                headerName: "Path",
-                itype: "$textarea",
-                field: "path",
+                headerName: "Schedule",
+                itype: "$string",
+                field: "schedule",
                 align: "left",
-                rowsMin: "1",
+                disabled: (props, Iob) => {
+                  const sel = Iob.getState(".info.plugins.$methods");
+                  let res = (sel && sel.val) || [];
+                  const method = props.inative["method"];
+                  const f = res.find((i) => i.value == method);
+                  //                  console.log(res, method);
+                  return !f || (f && !f.hasSchedule);
+                },
+                //                rowsMin: "1",
                 //                rules: ["onlyWords"],
                 //                sortable: true,
                 //                defaultValue: "newPath",
-                width: "15%",
+                width: "10%",
               },
               {
-                headerName: "Convert",
-                field: "convert",
-                itype: "$textarea",
-                rowsMin: "1",
+                headerName: "Converter",
+                itype: "$ilist",
+                sortable: false,
+                width: "10%",
                 align: "left",
-                defaultValue: "$",
-                placeholder: "Please enter the formula here, '$' is the simplest!",
-//                sortable: true,
-                width: "30%",
+                sortable: false,
+                items: [
+                  {
+                    itype: "$select",
+                    tooltip: "please select a converter",
+                    iselect: ($, props, Iob) => {
+                      const sel = Iob.getState(".info.plugins.$converters");
+                      let res = (sel && sel.val) || [];
+                      return res;
+                    },
+                    field: "converter",
+                    fullWidth: false,
+                    lineBreak:true,
+                    defaultValue: "none",
+                    width: "200px"
+                  },
+                  {
+                    field: "convert",
+                    itype: "$textarea",
+                    cols: 40,
+                    rowsMin: "1",
+                    defaultValue: "$",
+                    placeholder: "Please enter the converter formula or options, '$' is the simplest!",
+                    hideItem: (props, Iob) => {
+                      const sel = Iob.getState(".info.plugins.$converters");
+                      let res = (sel && sel.val) || [];
+                      const method = props.inative["converter"] || "none";
+                      const f = res.find((i) => i.value == method);
+//                      console.log(res, method, f);
+                      return !f || (f && !f.options);
+                    },
+                  },
+                ],
               },
               {
                 headerName: "Enabled",
@@ -173,7 +258,6 @@ function config() {
             pageSize: 10,
             cols: 12,
           },
-
         ],
       },
       {
@@ -379,6 +463,22 @@ function config() {
             field: "poll",
             variant: "body2",
             noGrid: true,
+          },
+          {
+            itype: "$ilist",
+            items: [
+              {
+                itype: "$icon",
+                icon: "translate",
+                size: "small",
+                spaces: 20,
+              },
+              {
+                itype: "$icon",
+                icon: "settings_remote",
+                size: "small",
+              },
+            ],
           },
           {
             itype: "$icon",

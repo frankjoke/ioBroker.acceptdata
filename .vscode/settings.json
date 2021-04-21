@@ -1,7 +1,7 @@
 {
-	"i18n-ally.localesPaths": [
-		"src/locales"
-	],
+	"i18n-ally.localesPaths": "/locales",
+    "i18n-ally.sourceLanguage": "en",
+    "i18n-ally.keystyle": "flat",
 	"eslint.options": {
 		"useEslintrc": false,
 		"parserOptions": {

@@ -28,7 +28,7 @@ class CacheP {
     fun = fun || this._fun;
     if (this._delay) await this.wait(this._delay);
     if (prefereCache && this._cache[item] !== undefined) return this._cache[item];
-    // assert(A.T(fun) === 'function', `checkItem needs a function to fill cache!`);
+    // assert(MyAdapter.T(fun) === 'function', `checkItem needs a function to fill cache!`);
     const res = await fun(item);
     this._cache[item] = res;
     return res;
@@ -94,7 +94,7 @@ class HrTime {
 // name has to be set and has to be equal to adapters folder name and main file name excluding extension
 // adapter will be restarted automatically every time as the configuration changed, e.g system.adapter.template.0
 const util = require("util"),
-  exec = require("child_process").exec,
+  cp = require("child_process"),
   os = require("os"),
   fs = require("fs"),
   masync = require("modern-async"),
@@ -154,7 +154,7 @@ function startAdapter(options) {
           adapter,
         },
         handler: async ({ adapter }, handler) => {
-          //          MyAdapter.Df("Default adapter$start for %s is starting", adapter.namespace);
+          //          MyAdapter.D("Default adapter$start for %s is starting", adapter.namespace);
           return handler;
         },
       });
@@ -164,7 +164,7 @@ function startAdapter(options) {
           adapter,
         },
         handler: async ({ adapter }, handler) => {
-          //          MyAdapter.Df("Default adapter$run handler for %s is starting.", adapter.namespace);
+          //          MyAdapter.D("Default adapter$run handler for %s is starting.", adapter.namespace);
           return handler;
         },
       });
@@ -187,7 +187,7 @@ function startAdapter(options) {
      * @param {ioBroker.Object | null | undefined} obj
      */
     async objectChange(id, obj) {
-      //		MyAdapter.Df("Object %s was changed top %O", id, obj);
+      //		MyAdapter.D("Object %s was changed top %o", id, obj);
       setImmediate(() =>
         plugins
           .call({
@@ -198,7 +198,7 @@ function startAdapter(options) {
               obj,
             },
             handler: async ({ adapter, id, obj }, handler) => {
-              //                MyAdapter.Sf("Default adapter$stateChange handler for %s: %s.", id, A.O(state));
+              //                MyAdapter.S("Default adapter$stateChange handler for %s: %s.", id, MyAdapter.O(state));
               return handler;
             },
           })
@@ -224,7 +224,7 @@ function startAdapter(options) {
      * @param {ioBroker.State | null | undefined} state
      */
     async stateChange(id, state) {
-      //		MyAdapter.Df("State %s was changed top %O", id, state);
+      //		MyAdapter.D("State %s was changed top %o", id, state);
       //      if (!state || state.from !== "system.adapter." + MyAdapter.ains)
       setImmediate(() =>
         plugins
@@ -236,7 +236,7 @@ function startAdapter(options) {
               state,
             },
             handler: async ({ adapter, id, state }, handler) => {
-              //                MyAdapter.Sf("Default adapter$stateChange handler for %s: %s.", id, A.O(state));
+              //                MyAdapter.S("Default adapter$stateChange handler for %s: %s.", id, MyAdapter.O(state));
               return handler;
             },
           })
@@ -284,7 +284,7 @@ function startAdapter(options) {
         plugins.call({
           name: "adapter$message",
           args: { message: obj },
-          handler: async ({ message }) => Array.D(`Message received: ${A.O(message)}`),
+          handler: async ({ message }) => Array.D(`Message received: ${MyAdapter.O(message)}`),
         });
         if (obj.callback) adapter.sendTo(obj.from, obj.command, "Message received", obj.callback);
       }
@@ -293,7 +293,7 @@ function startAdapter(options) {
   try {
     const utils = require("@iobroker/adapter-core");
     adapter = new utils.Adapter(options);
-    // MyAdapter.If("got following adapter: %O", options);
+    // MyAdapter.If("got following adapter: %o", options);
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error("cannot find ioBroker...");
@@ -352,6 +352,10 @@ class MyAdapter {
     return plugins.$plugins;
   }
 
+  static get $F() {
+    return plugins.$plugins.functions;
+  }
+
   static addHooks(hooks, options = {}) {
     if (typeof hooks === "function") hooks = { [hooks.name]: hooks };
     return plugins.register(Object.assign({}, options, { hooks }));
@@ -402,7 +406,7 @@ class MyAdapter {
   // eslint-disable-next-line complexity
   static async initAdapter() {
     try {
-      this.Df("Adapter %s starting.", this.ains);
+      this.D("Adapter %s starting.", this.ains);
       this.getObjectList = adapter.getObjectListAsync
         ? adapter.getObjectListAsync.bind(adapter)
         : this.c2p(adapter.objects.getObjectList).bind(adapter.objects);
@@ -433,7 +437,7 @@ class MyAdapter {
       res = await adapter.getForeignObjectAsync("system.config").catch(() => null);
       if (res) {
         systemconf = res.common;
-        //                    this.If('systemconf: %O', systemconf);
+        //                    this.If('systemconf: %o', systemconf);
         if (systemconf && systemconf.language) adapter.config.lang = systemconf.language;
         if (systemconf && systemconf.latitude) {
           adapter.config.latitude = parseFloat(systemconf.latitude);
@@ -441,19 +445,19 @@ class MyAdapter {
         }
         //                if (adapter.config.forceinit)
         //                    this.seriesOf(res, (i) => this.removeState(i.doc.common.name), 2)
-        //                this.If('loaded adapter config: %O', adapter.config);
+        //                this.If('loaded adapter config: %o', adapter.config);
       }
       res = await adapter.getForeignObjectAsync("system.adapter." + this.ains).catch(() => null);
       if (res) {
         adapter.config.adapterConf = res.common;
-        //                    this.If('adapterconf = %s: %O', 'system.adapter.' + this.ains, adapterconf);
-        //                    this.If('adapter: %O', adapter);
+        //                    this.If('adapterconf = %s: %o', 'system.adapter.' + this.ains, adapterconf);
+        //                    this.If('adapter: %o', adapter);
         if (adapter.config.adapterConf && adapter.config.adapterConf.loglevel)
           adapter.config.loglevel = adapter.config.adapterConf.loglevel;
         //                    this.If('loglevel: %s, debug: %s', adapter.config.loglevel, MyAdapter.debug);
         //                if (adapter.config.forceinit)
         //                    this.seriesOf(res, (i) => this.removeState(i.doc.common.name), 2)
-        //                this.If('loaded adapter config: %O', adapter.config);
+        //                this.If('loaded adapter config: %o', adapter.config);
       }
       this.D(
         `${adapter.name} received ${len} objects and ${this.ownKeys(states).length} states`
@@ -463,8 +467,6 @@ class MyAdapter {
       if (adapter._objChange) adapter.subscribeObjects("*");
       //                .then(() => objChange ? MyAdapter.c2p(adapter.subscribeObjects)('*').then(a => MyAdapter.I('eso '+a),a => MyAdapter.I('eso '+a)) : MyAdapter.resolve())
       //      this.I(aname + " initialization started...");
-      //			process.on('rejectionHandled', (reason, promise) => this.Wr(true, 'Promise problem rejectionHandled of Promise %s with reason %s', promise, reason));
-      //			process.on('unhandledRejection', (reason, promise) => this.Wr(true, 'Promise problem unhandledRejection of Promise %O with reason %O', promise, reason));
     } catch (e) {
       this.stop(this.E(aname + " Initialization Error:" + this.F(e)));
     }
@@ -496,7 +498,7 @@ class MyAdapter {
   }
 
   static init2() {
-    //            if (adapter) this.If('adpter: %O',adapter);
+    //            if (adapter) this.If('adpter: %o',adapter);
     assert(adapter && adapter.name, "myAdapter:(adapter) no adapter here!");
     aname = adapter.name;
 
@@ -532,20 +534,10 @@ class MyAdapter {
 
     //        adapter.removeAllListeners();
     process.on("rejectionHandled", (reason, promise) =>
-      this.Wr(
-        true,
-        "Promise problem rejectionHandled of Promise %s with reason %s",
-        promise,
-        reason
-      )
+      this.W("Promise problem rejectionHandled of Promise %s with reason %s", promise, reason)
     );
     process.on("unhandledRejection", (reason, promise) =>
-      this.Wr(
-        true,
-        "Promise problem unhandledRejection of Promise %O with reason %O",
-        promise,
-        reason
-      )
+      this.W("Promise problem unhandledRejection of Promise %o with reason %o", promise, reason)
     );
 
     return adapter;
@@ -600,7 +592,7 @@ class MyAdapter {
       );
     }
 
-    MyAdapter.Wf("Promise failed @ %O error: %o", get().join("; "), x);
+    MyAdapter.W("Promise failed @ %o error: %o", get().join("; "), x);
     return x;
   }
 
@@ -622,26 +614,11 @@ class MyAdapter {
 			assert.apply(null, arguments);
 		}
 	 */
-  static D(str, val) {
-    return slog("debug", str, val);
-  }
-
-  static Dr(str, ...args) {
-    return slog("debug", this.f(...args), str);
-  }
-
-  static Df(...str) {
+  static D(...str) {
     return slog("debug", this.f(...str));
   }
 
-  static Silly(str, val) {
-    return slog("silly", str, val);
-  }
-  static Sr(str, ...args) {
-    return slog("silly", this.f(...args), str);
-  }
-
-  static Sf(...str) {
+  static S(...str) {
     return slog("silly", this.f(...str));
   }
 
@@ -651,35 +628,14 @@ class MyAdapter {
   static f(...args) {
     return this.F(...args).replace(/\n\s+/g, " ");
   }
-  static I(l, v) {
-    return slog("info", l, v);
-  }
-
-  static Ir(ret, ...args) {
-    return slog("info", this.f(...args), ret);
-  }
-  static If(...args) {
+  static I(...args) {
     return slog("info", this.f(...args));
   }
 
-  static Wf(...args) {
+  static W(...args) {
     return slog("warn", this.f(...args));
   }
-  static Wr(ret, ...args) {
-    return slog("warn", this.f(...args), ret);
-  }
-  static Er(ret, ...args) {
-    return slog("error", this.f(...args), ret);
-  }
-
-  static W(l, v) {
-    return slog("warn", l, v);
-  }
-  static E(l, v) {
-    return slog("error", l, v);
-  }
-
-  static Ef(...args) {
+  static E(...args) {
     return slog("error", this.f(...args));
   }
 
@@ -854,7 +810,7 @@ class MyAdapter {
     return a;
   }
 
-  static S(obj, level = 2) {
+  static String(obj, level = 2) {
     return typeof obj === "string" ? obj : this.O(obj, level);
   }
 
@@ -927,9 +883,9 @@ class MyAdapter {
           MyAdapter.I(`adapter$stop called with ${dostop}/${stopcall}!`);
           await MyAdapter.plugins.call({
             name: "plugins$stop",
-            args: { plugins: A.$plugins, adapter },
+            args: { plugins: MyAdapter.$plugins, adapter },
             handler: async ({ plugins }, handler) => {
-              A.Df("plugins$stop executed for %s", A.O(plugins));
+              MyAdapter.D("plugins$stop executed for %o", plugins);
               return handler;
             },
           });
@@ -941,7 +897,7 @@ class MyAdapter {
     }
     if (stopcall) {
       const x = dostop < 0 ? 0 : dostop || 0;
-      MyAdapter.Df(
+      MyAdapter.D(
         "Adapter will exit now with code %s and method %s!",
         x,
         adapter && adapter.terminate ? "adapter.terminate" : "process.exit"
@@ -1016,14 +972,55 @@ class MyAdapter {
     return true;
   }
 
+  static getOptions(src, cmd, options) {
+    if (typeof src === "string")
+      src = src.trim();
+    if (typeof cmd=== "object" && !options) {
+      const { srcCommand, ...other } = cmd;
+      options=other;
+      if (srcCommand)
+        cmd = srcCommand;
+    }
+    if (!options || typeof options !== "object") options = {}
+    if (typeof cmd === "string") {
+      options[cmd] = src;
+      src = options;
+     };
+//     console.log("getOptions src:%o cmd:%o options:%o", src, cmd, options);
+//     debugger;
+    if (src && typeof src === "object") return Object.assign({}, options, src );
+    if (src && typeof src === "string") {
+      if (src.startsWith("{") && src.endsWith("}")) 
+        src = "return " + src;
+      if (str.startsWith("return ")) {
+        const fun = MyAdapter.makeFunction(str, "A,options");
+        if (typeof fun === "function")
+          return fun(A, options);
+      } 
+      return str;
+    }
+    MyAdapter.W("Invalid getOptions (%o, %o, %o)", src, cmd, options);
+    return src;
+  }
+
   static exec(command) {
     //		assert(typeof command === "string", "exec (fn) error: fn is not a string!");
-    const istest = command.startsWith("!");
+    if (typeof command === "string") {
+      const str = command.trim();
+      const isTest = str.startsWith("!");
+      command = {
+        isTest,
+        cmd: isTest ? str.slice(1) : str,
+      };
+    } else if (typeof command !== "object")
+      return Promise.reject(A.W("Invalid exec argument %o!", command));
     return new Promise((resolve, reject) => {
+      const { isTest, cmd } = command;
       try {
-        exec(istest ? command.slice(1) : command, (error, stdout, stderr) => {
-          if (istest && error) {
-            error[stderr] = stderr;
+        cp.exec(cmd, (error, stdout, stderr) => {
+          if (isTest && error) {
+            error["stderr"] = stderr;
+            error["stdout"] = stdout;
             return reject(error);
           }
           resolve(stdout);
@@ -1076,13 +1073,13 @@ class MyAdapter {
   }
 
   static async changeState(id, value, options) {
-    //        this.If('ChangeState got called on %s with ack:%s = %O', id,ack,value)
+    //        this.If('ChangeState got called on %s with ack:%s = %o', id,ack,value)
     options = options || {};
     const always = options.always;
     const ts = options.ts;
     const ack = options.ack;
     if (value === undefined) {
-      this.Wf("You tried to set state '%s' to 'undefined' with %j!", id, options);
+      this.W("You tried to set state '%s' to 'undefined' with %j!", id, options);
       return null;
     }
     const stn = {
@@ -1096,14 +1093,14 @@ class MyAdapter {
     if (st && !always && this.equal(st.val, value) && st.ack === ack) return st;
     await adapter
       .setStateAsync(id, stn)
-      .catch((e) => (this.Wf("Error %j is setState for %s with %j", e, id, stn), stn));
+      .catch((e) => (this.W("Error %j is setState for %s with %j", e, id, stn), stn));
     if (states[id]) {
       st = states[id];
       st.val = value;
       st.ack = ack;
       if (ts) st.ts = ts;
     } else states[id] = st = await adapter.getStateAsync(id);
-    this.Df("ChangeState ack:%s of %s = %s", !!ack, id, value);
+    this.D("ChangeState ack:%s of %s = %s", !!ack, id, value);
     return st;
   }
 
@@ -1126,9 +1123,29 @@ class MyAdapter {
     return s;
   }
 
+  static makeFunction(fundef, args = "", that = null) {
+    if (typeof fundef === "function" && that) return fundef.bind(that);
+    else if (typeof fundef === "string") {
+      fundef = fundef.trim();
+      args = args.trim();
+      const argList = [fundef];
+      if (args) argList.unshift(args);
+      let fun;
+      try {
+//        MyAdapter.D("Create function %o", argList, fundef, args);
+        fun = new Function(...argList);
+        return that ? fun.bind(that) : fun;
+      } catch (e) {
+        MyAdapter.W("Function compilation error in %s(%s): %o", fundef, args, e);
+        return () => undefined;
+      }
+    } else {
+      this.W("Invalid function definition with `%o`", fundef);
+    }
+  }
   static async makeState(ido, value, ack, always, define) {
     //        ack = ack === undefined || !!ack;
-    //                this.Df(`Make State %s and set value to:%O ack:%s`,typeof ido === 'string' ? ido : ido.id,value,ack); ///TC
+    //                this.D(`Make State %s and set value to:%o ack:%s`,typeof ido === 'string' ? ido : ido.id,value,ack); ///TC
     const options =
       typeof ack == "object"
         ? ack
@@ -1153,7 +1170,7 @@ class MyAdapter {
 
     if ((!options.define || typeof ido !== "object") && createdStates[idl])
       return this.changeState(id, value, options);
-    //        this.Df(`Make State ack:%s %s = %s`, ack, id, value); ///TC
+    //        this.D(`Make State ack:%s %s = %s`, ack, id, value); ///TC
     const st = {
       common: {
         name: id, // You can add here some description
@@ -1180,8 +1197,8 @@ class MyAdapter {
     createdStates[idl] = id;
     await adapter
       .extendObjectAsync(idl, st, null)
-      .catch((e) => (this.Wf("error %j extend object %s", e, idl), null));
-    this.Df("created State %s", idl); // REM
+      .catch((e) => (this.W("error %j extend object %s", e, idl), null));
+    this.D("created State %s", idl); // REM
     if (st.common.state === "state" && !objects[this.ain + id]) {
       objects[idl] = st;
     }
@@ -1189,8 +1206,8 @@ class MyAdapter {
   }
 
   static async cleanup(name) {
-    //        .then(() => A.I(A.F(A.sstate)))
-    //        .then(() => A.I(A.F(A.ownKeysSorted(A.states))))
+    //        .then(() => MyAdapter.I(MyAdapter.F(MyAdapter.sstate)))
+    //        .then(() => MyAdapter.I(MyAdapter.F(MyAdapter.ownKeysSorted(MyAdapter.states))))
     const res = await this.getObjects(name);
     for (const item of res) {
       // clean all states which are not part of the list
@@ -1201,7 +1218,7 @@ class MyAdapter {
         continue;
       //            this.I(`check state ${item.id} and ${id}: ${states[item.id]} , ${states[id]}`);
       if (states[id]) {
-        this.Df("Cleanup delete state %s", id);
+        this.D("Cleanup delete state %s", id);
         await adapter.deleteStateAsync(id).catch(MyAdapter.nop);
       }
       //				.catch(err => this.D(`Del State err: ${this.O(err)}`));
@@ -1212,7 +1229,7 @@ class MyAdapter {
           break;
         }
       if (!found) {
-        this.Df("Cleanup delete object %s", id);
+        this.D("Cleanup delete object %s", id);
         await adapter.delObjectAsync(id).catch(MyAdapter.nop);
       }
       //				.catch(err => this.D(`Del Object err: ${this.O(err)}`)); ///TC
@@ -1227,12 +1244,11 @@ class MyAdapter {
       .catch(() => false);
   }
 }
-const A = MyAdapter;
 /* 
 process.on('SIGTERM', function onSigterm () {
   console.info('Got SIGTERM. Graceful shutdown start', new Date().toISOString())
   // start graceul shutdown here
-  A.stop(0);
+  MyAdapter.stop(0);
 });
  */
 MyAdapter.CacheP = CacheP;
