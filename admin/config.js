@@ -152,7 +152,8 @@ function config() {
                     },
                     hideItem: (props, Iob) => {
                       const sel = Iob.getState(".info.plugins.$methods");
-                      let res = (sel && sel.val) || [];
+                      let res = sel && sel.val;
+                      res = Array.isArray(res) ? res : [];
                       const method = props.inative["method"];
                       const f = res.find((i) => i.value == method);
 //                      console.log(res, method, f);
@@ -181,7 +182,8 @@ function config() {
                     lineBreak: true,
                     hideItem: (props, Iob) => {
                       const sel = Iob.getState(".info.plugins.$methods");
-                      let res = (sel && sel.val) || [];
+                      let res = sel && sel.val;
+                      res = Array.isArray(res) ? res : [];
                       const method = props.inative["method"];
                       const f = res.find((i) => i.value == method);
                       //                  console.log(res, method);
@@ -197,8 +199,9 @@ function config() {
                 align: "left",
                 disabled: (props, Iob) => {
                   const sel = Iob.getState(".info.plugins.$methods");
-                  let res = (sel && sel.val) || [];
-                  const method = props.inative["method"];
+                  let res = sel && sel.val;
+                  res = Array.isArray(res) ? res : [];
+              const method = props.inative["method"];
                   const f = res.find((i) => i.value == method);
                   //                  console.log(res, method);
                   return !f || (f && !f.hasSchedule);
@@ -241,7 +244,8 @@ function config() {
                       "Please enter the converter formula or options, '$' is the simplest!",
                     hideItem: (props, Iob) => {
                       const sel = Iob.getState(".info.plugins.$converters");
-                      let res = (sel && sel.val) || [];
+                      let res = sel && sel.val;
+                      res = Array.isArray(res) ? res : [];
                       const method = props.inative["converter"] || "none";
                       const f = res.find((i) => i.value == method);
                       //                      console.log(res, method, f);
