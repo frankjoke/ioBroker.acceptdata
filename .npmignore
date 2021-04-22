@@ -14,7 +14,7 @@ travis/
 appveyor.yml
 .travis.yaml
 appveyor.yaml
-
+.dev-server/
 # Type checking configuration
 tsconfig.json
 tsconfig.*.json
