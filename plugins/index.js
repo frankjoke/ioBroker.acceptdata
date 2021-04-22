@@ -9,8 +9,8 @@ function installPlugins(options = {}) {
   A.AI.getStatesAsync("info.plugins.$plugins.*").then((r) =>
     Object.entries(r).map(([id, state]) => {
       try {
-        let fun = state.val;
-        fun = A.makeFunction("return " + fun, "A");
+        let fun = state.val.trim();
+        fun = A.makeFunction(fun.startsWith("return ") ? fun : "return " + fun, "A");
         const pli = fun(A);
         A.D("pluginState %s, %s=%o", id, state.val, pli);
         A.plugins.register(pli);

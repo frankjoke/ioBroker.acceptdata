@@ -105,7 +105,7 @@ const plugin$express = {
       return handler;
     },
     async plugins$stop({ plugins, adapter }, handler) {
-      A.S("plugin plugin$express runs plugins$stop and closes express.");
+      A.D("plugin plugin$express runs plugins$stop and closes express.");
       app.close();
       return handler;
     },

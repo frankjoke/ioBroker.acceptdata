@@ -161,14 +161,15 @@ A.addHooks({
 
   adapter$stop: async ({ adapter, dostop = 0, stopcall = false }, handler) => {
     A.S("adapter$stop plugin for %s %s/%s", adapter.namespace, dostop, stopcall);
-    for (let sh in schedList) {
-      sh = schedList[sh];
-      A.D("Cancel Job %s, %s", sh.scheduler.nextInvocation(), sh.map((x) => x.name).join(", "));
+    for (const [key, sh] of Object.entries(schedList)) {
+//      sh = schedList[sh];
+      A.D("Cancel schedule %s %s", key, sh.map((x) => x.name).join(", "));
       sh.scheduler.cancel();
     }
-
+    await A.setConnected(false);
     return handler;
   },
+
   /*
   adapter$message: async ({ message }, handler) => {
       console.log("adapter$message received: " + A.O(message));

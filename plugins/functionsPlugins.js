@@ -3,7 +3,7 @@ const A = require("../fjadapter");
 function toNum(v, n) {
   const vn = Number(v);
   if (typeof n !== "number" || n < 0) return vn;
-  return Number(vn.toFixed(n));
+  return vn.toFixed(n);
 }
 
 const funs = {
