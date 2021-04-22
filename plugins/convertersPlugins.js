@@ -12,11 +12,15 @@ const plugin$converters = {
         convert: async (value, functions, options) => {
           let r;
           try {
-            if ((r = options.match(/^\s*\/(.*)\/([gimy])*\s*$/))) {
-              r = new RegExp(...r.slice(1));
+            if ((r = options.match(/^\s*\/(.*)\/([dgimsuy]*)\s*$/))) {
+              r = r.slice(1);
+              r = new RegExp(...r);
             } else r = A.makeFunction(options, "A")(A);
-            r = value.match(r).slice(1);
-            A.D("RegExp result: %o, processed %s with %s", r, value, options);
+//            let res = ((r.flags.indexOf("m")>=0)  ? value.replace(/\n/g," ") : value).match(r);
+            let res = value.match(r);
+            if (Array.isArray(res) && res.input) res = res.slice(1);
+            A.D("RegExp result: %o, processed %s with %s", res, value, r.toString());
+            return res;
           } catch (e) {
             r = A.W("Error %o in conversion from JSON :%o", e, value);
             return Promise.reject(r);
