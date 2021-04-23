@@ -20,9 +20,13 @@ A.addHooks({
       convert: async (val, functions, options) => val,
     };
     Object.assign(A.$plugins, {
-      config: { port: Number(adapter.config.port)!==NaN && Number(adapter.config.port)  || 3000 },
+      config: {
+        port: (Number(adapter.config.port) !== NaN && Number(adapter.config.port)) || 3000,
+      },
       functions: {},
       methods: [],
+      store: [],
+      storeStore: {},
       methodReads: {},
       methodWrites: {},
       converters: [noConv],
@@ -42,24 +46,32 @@ A.addHooks({
       args: { plugins: A.$plugins, adapter },
       handler: async ({ plugins, adapter }, handler) => {
         await A.AI.setStateAsync("info.plugins.$methods", {
-          val: plugins.methods.map(({ label, value, hasSchedule, read, write, iconv }) => {
+          val: plugins.methods.map(({ label, value, hasSchedule, read, write, iconv, desc }) => {
             plugins.methodReads[value] = read;
             plugins.methodWrites[value] = write;
-            return { label, value, hasSchedule, write: !!write, iconv };
+            return { label, value, hasSchedule, write: !!write, iconv, desc };
           }),
           ack: true,
         });
         await A.AI.setStateAsync("info.plugins.$converters", {
-          val: plugins.converters.map(({ label, value, options, convert }) => {
+          val: plugins.converters.map(({ label, value, options, convert, desc }) => {
             plugins.converterConverts[value] = convert;
-            return { label, value, options };
+            return { label, value, options, desc };
           }),
           ack: true,
         });
+        await A.updateState(
+          "info.plugins.$store",
+          plugins.store.map(({ label, value, hasOptions, store, desc }) => {
+            plugins.storeStore[value] = store;
+            return { label, value, hasOptions, desc };
+          }),
+          {common: {desc: "plugin$store functions list"}}
+        );
         await A.AI.setStateAsync("info.plugins.$inputtypes", {
-          val: plugins.inputtypes.map(({ label, value, convert }) => {
+          val: plugins.inputtypes.map(({ label, value, convert, desc }) => {
             plugins.inputConverts[value] = convert;
-            return { label, value };
+            return { label, value, desc };
           }),
           ack: true,
         });
@@ -67,7 +79,7 @@ A.addHooks({
           val: Object.keys(plugins.functions).join(", "),
           ack: true,
         });
-        A.D("finished plugins$init created $plugins: %o", plugins);
+        A.S("finished plugins$init created $plugins: %o", plugins);
         return handler;
       },
     });
@@ -82,7 +94,7 @@ A.addHooks({
         let { name, path, method, convert, enabled, schedule = "*:1" } = i;
         //        if (!name) name = path;
         if (!enabled) continue;
-        const nitem = Object.assign({}, i);
+        const nitem = Object.assign({}, { config: i }, i);
         runItems.push(nitem);
         convert = convert || "$";
         const me = A.$plugins.methods.find((i) => i.value == method);
@@ -125,7 +137,7 @@ A.addHooks({
             path,
             callback: async (res) => {
               A.I("received to process from %s: %o", path, res);
-              await runItem(i, res);
+              await runItem(nitem, res);
             },
           });
           A.D(`Installed ${name} path: '${path}' with ${method}-method`);
@@ -140,7 +152,7 @@ A.addHooks({
         for (let sh in schedList) {
           const scheduler = schedule.scheduleJob(sh, () =>
             schedList[sh].map(async (x) => {
-              const res = x.read ? await x.read(x.path) : null;
+              const res = x.read ? await x.read(x.path, x) : null;
               //              A.D("Schedule now %s with path '%s': %o", x.name, x.path, res);
               runItem(x, res);
             })
@@ -162,7 +174,7 @@ A.addHooks({
   adapter$stop: async ({ adapter, dostop = 0, stopcall = false }, handler) => {
     A.S("adapter$stop plugin for %s %s/%s", adapter.namespace, dostop, stopcall);
     for (const [key, sh] of Object.entries(schedList)) {
-//      sh = schedList[sh];
+      //      sh = schedList[sh];
       A.D("Cancel schedule %s %s", key, sh.map((x) => x.name).join(", "));
       sh.scheduler.cancel();
     }
@@ -194,12 +206,15 @@ const schedList = {};
 
 async function runItem(item, arg) {
   const $pi = A.$plugins;
-  A.D("runItem %s: %s with data %o", item.name, item, arg);
+  A.D("runItem %s: %s with data %s", item.name, item, typeof arg);
   try {
     let fun = $pi.inputConverts[item.iconv];
     if (item.iconv && typeof fun === "function") arg = await fun(arg, $pi.functions, item);
     fun = $pi.converterConverts[item.converter];
-    if (typeof fun === "function") arg = await fun(arg, $pi.functions, item.convert);
+    if (typeof fun === "function") arg = await fun(arg, $pi.functions, item);
+    A.D("Finished item %s with %o", item.name, arg);
+    fun = $pi.storeStore[item.store];
+    if (typeof fun === "function") arg = await fun(arg, $pi.functions, item);
     return arg;
   } catch (e) {
     const ret = A.W("Error when processing %s with Data %o: %o", item.name, arg, e);

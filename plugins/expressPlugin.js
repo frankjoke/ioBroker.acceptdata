@@ -19,6 +19,7 @@ const plugin$express = {
         {
           label: "server.GET",
           value: "express.get",
+          desc: "wait for a GET on provided path",
           init: async ({ path, callback }) => {
             A.S("Install %s with path %s!", "server.GET", path);
             app.get(makePath(path), async (request, response) => {
@@ -34,6 +35,7 @@ const plugin$express = {
         {
           label: "server.POST",
           value: "express.post",
+          desc: "wait for a POST on provided path",
           init: async ({ path, callback }) => {
             A.S("Install %s with path %s!", "server.POST", path);
             app.post(makePath(path), async (request, response) => {
@@ -48,6 +50,7 @@ const plugin$express = {
         {
           label: "server.PUT",
           value: "express.put",
+          desc: "wait for a PUT on provided path",
           init: async ({ path, callback }) => {
             A.S("Install %s with path %s!", "server.PUT", path);
             app.put(makePath(path), async (request, response) => {

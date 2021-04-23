@@ -1,40 +1,64 @@
 const A = require("../fjadapter");
 const fs = require("fs/promises");
 const si = require("systeminformation");
+const axios = require("axios");
 
-const plugin$exec = {
-  name: "plugin$execfile",
+const plugin$methods = {
+  name: "plugin$methods",
   hooks: {
     async plugins$init({ plugins, adapter }, handler) {
-      A.S("plugin plugin$execfile runs plugins$init with %o", plugins);
+      A.S("plugin plugin$methods runs plugins$init with %o", plugins);
       plugins.methods.push(
+        {
+          label: "web",
+          value: "web",
+          desc: "get an url from web and return received content",
+          hasSchedule: true,
+          iconv: true,
+          cache: true,
+          read: async (path, item) => {
+            A.S("Run %s with path %s!", "exec.read", path);
+            let res = undefined;
+            try {
+              res = A.getOptions(path, "url");
+              res = await axios.request(res);
+              res=res.data;
+              A.S("executed web request on %s with result %s", path, res);
+              return res;
+            } catch (e) {
+              return Promise.reject(A.W("Exec error on '%s': %s", path, e));
+            }
+          },
+          //          write: async ({ path, callback }) => {},
+        },
         {
           label: "exec",
           value: "exec",
+          desc: "execute a statement on command line and return the output.",
           hasSchedule: true,
           iconv: true,
           write: true,
           cache: true,
-          read: async (path) => {
+          read: async (path, item) => {
             A.S("Run %s with path %s!", "exec.read", path);
             let res = undefined;
             try {
               res = A.getOptions(path, "cmd");
               res = await A.exec(res);
             } catch (e) {
-              A.W("Exec error on '%s': %s", path, e);
+              return Promise.reject(A.W("Exec error on '%s': %s", path, e));
             }
             A.I("executed %s with result %s", path, res);
             return res;
           },
-          //          write: async ({ path, callback }) => {},
         },
         {
           label: "file",
           value: "file",
           hasSchedule: true,
           iconv: true,
-          read: async (path) => {
+          desc: "read a file and return th output.",
+          read: async (path, item) => {
             A.S("Run %s with path %s!", "file.read", path);
             try {
               let {file, ...options} = A.getOptions(path, "file", { encoding: "utf8" });
@@ -46,7 +70,7 @@ const plugin$exec = {
               return Promise.reject(e);
             }
           },
-          write: async (path, value) => {
+          write: async (path, value, item) => {
             A.S("Run %s with path %s!", "file.read", path);
             let res = await A.writeFile(path, value.toString(), "utf8");
             A.S("executed %s with result %o", path, res);
@@ -56,8 +80,9 @@ const plugin$exec = {
         {
           label: "systeminfo",
           value: "systeminfo",
+          desc: "execute one function of systeminformation",
           hasSchedule: true,
-          read: async (path) => {
+          read: async (path, item) => {
             A.S("Run %s with path %s!", "file.read", path);
             if (typeof si[path] !== "function") {
               A.E(
@@ -67,8 +92,8 @@ const plugin$exec = {
               );
               return {};
             }
-            let res = await si[path]();
-            A.S("executed %s with result %o", path, res);
+            let res = await Promise.resolve(si[path]());
+            A.S("executed systeminfo %s with result %o", path, res);
             return res;
           },
         }
@@ -87,4 +112,4 @@ const plugin$exec = {
   },
 };
 
-module.exports = plugin$exec;
+module.exports = plugin$methods;

@@ -973,30 +973,26 @@ class MyAdapter {
   }
 
   static getOptions(src, cmd, options) {
-    if (typeof src === "string")
-      src = src.trim();
-    if (typeof cmd=== "object" && !options) {
+    if (typeof src === "string") src = src.trim();
+    if (typeof cmd === "object" && !options) {
       const { srcCommand, ...other } = cmd;
-      options=other;
-      if (srcCommand)
-        cmd = srcCommand;
+      options = other;
+      if (srcCommand) cmd = srcCommand;
     }
-    if (!options || typeof options !== "object") options = {}
+    if (!options || typeof options !== "object") options = {};
     if (typeof cmd === "string") {
       options[cmd] = src;
       src = options;
-     };
-//     console.log("getOptions src:%o cmd:%o options:%o", src, cmd, options);
-//     debugger;
-    if (src && typeof src === "object") return Object.assign({}, options, src );
+    }
+    //     console.log("getOptions src:%o cmd:%o options:%o", src, cmd, options);
+    //     debugger;
+    if (src && typeof src === "object") return Object.assign({}, options, src);
     if (src && typeof src === "string") {
-      if (src.startsWith("{") && src.endsWith("}")) 
-        src = "return " + src;
+      if (src.startsWith("{") && src.endsWith("}")) src = "return " + src;
       if (str.startsWith("return ")) {
         const fun = MyAdapter.makeFunction(str, "A,options");
-        if (typeof fun === "function")
-          return fun(A, options);
-      } 
+        if (typeof fun === "function") return fun(A, options);
+      }
       return str;
     }
     MyAdapter.W("Invalid getOptions (%o, %o, %o)", src, cmd, options);
@@ -1072,38 +1068,6 @@ class MyAdapter {
     return states;
   }
 
-  static async changeState(id, value, options) {
-    //        this.If('ChangeState got called on %s with ack:%s = %o', id,ack,value)
-    options = options || {};
-    const always = options.always;
-    const ts = options.ts;
-    const ack = options.ack;
-    if (value === undefined) {
-      this.W("You tried to set state '%s' to 'undefined' with %j!", id, options);
-      return null;
-    }
-    const stn = {
-      val: value,
-      ack: !!ack,
-    };
-    if (ts) stn.ts = ts;
-    let st = states[id]
-      ? states[id]
-      : (states[id] = await adapter.getStateAsync(id).catch(() => undefined));
-    if (st && !always && this.equal(st.val, value) && st.ack === ack) return st;
-    await adapter
-      .setStateAsync(id, stn)
-      .catch((e) => (this.W("Error %j is setState for %s with %j", e, id, stn), stn));
-    if (states[id]) {
-      st = states[id];
-      st.val = value;
-      st.ack = ack;
-      if (ts) st.ts = ts;
-    } else states[id] = st = await adapter.getStateAsync(id);
-    this.D("ChangeState ack:%s of %s = %s", !!ack, id, value);
-    return st;
-  }
-
   static getClass(obj) {
     if (typeof obj === "undefined") return "undefined";
     if (obj === null) return "null";
@@ -1132,7 +1096,7 @@ class MyAdapter {
       if (args) argList.unshift(args);
       let fun;
       try {
-//        MyAdapter.D("Create function %o", argList, fundef, args);
+        //        MyAdapter.D("Create function %o", argList, fundef, args);
         fun = new Function(...argList);
         return that ? fun.bind(that) : fun;
       } catch (e) {
@@ -1142,6 +1106,74 @@ class MyAdapter {
     } else {
       this.W("Invalid function definition with `%o`", fundef);
     }
+  }
+
+  static async changeState(id, value, options) {
+    //        this.If('ChangeState got called on %s with ack:%s = %o', id,ack,value)
+    options = options || {};
+    const { always = false, ts = Date.now(), ack = true } = options;
+    if (value === undefined) {
+      this.W("You tried to set state '%s' to 'undefined' with %j!", id, options);
+      return null;
+    }
+    const stn = {
+      val: value,
+      ack: !!ack,
+      ts,
+    };
+    let st = states[id]
+      ? states[id]
+      : (states[id] = await adapter.getStateAsync(id).catch(() => undefined));
+    if (st && !always && this.equal(st.val, value) && st.ack === ack) return st;
+    await adapter
+      .setStateAsync(id, stn)
+      .catch((e) => (this.W("Error %j is setState for %s with %j", e, id, stn), stn));
+    if (states[id]) {
+      st = states[id];
+      st.val = value;
+      st.ack = ack;
+    } else states[id] = st = await adapter.getStateAsync(id);
+    this.D("ChangeState ack:%s of %s = %s", !!ack, id, value);
+    return st;
+  }
+
+  static async updateState(id, value, ack = true, always = false, define = false) {
+    let options = {};
+    if (typeof id === "object" && typeof id.id === "string") {
+      options = id;
+      id = id.id;
+      if (id.value !== undefined && value === undefined) value = id.value;
+    }
+    const poptions = { always, define };
+    Object.assign(poptions, typeof ack == "object" ? ack : { ack });
+    options = Object.assign({}, poptions, options);
+    const idl = id.startsWith(this.ain) ? id : this.ain + id;
+
+    console.log("updateState(%s(%s), %o, options:%o)", id, idl, value, options);
+    if (!options.define && createdStates[idl]) return this.changeState(id, value, options);
+    const st = {
+      common: {
+        name: id, // You can add here some description
+        read: true,
+        write: false,
+        role: value instanceof Date ? "value.time" : "value",
+        type: typeof value,
+      },
+      type: "state",
+      _id: idl,
+    };
+    if (options.common) Object.assign(st.common, options.common);
+//    if (st.common.type === "object") st.common.type = "mixed";
+    if (options.native) st.native = Object.assign({}, options.native);
+    if (st.common.write) st.common.role = st.common.role.replace(/^value/, "level");
+    addSState(id, idl);
+    createdStates[idl] = id;
+    await adapter
+      .extendObjectAsync(idl, st, null)
+      .catch((e) => (this.W("error %j extend object %s", e, idl), null));
+    this.D("created State %s", idl); // REM
+    if (!objects[idl]) objects[idl] = st;
+    return this.changeState(idl, value, options);
   }
   static async makeState(ido, value, ack, always, define) {
     //        ack = ack === undefined || !!ack;

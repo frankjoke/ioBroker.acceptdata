@@ -255,6 +255,48 @@ function config() {
                 ],
               },
               {
+                headerName: "Store",
+                itype: "$ilist",
+                sortable: false,
+                width: "10%",
+                align: "left",
+                sortable: false,
+                items: [
+                  {
+                    itype: "$select",
+                    tooltip: "please select a converter",
+                    iselect: ($, props, Iob) => {
+                      const sel = Iob.getState(".info.plugins.$store");
+                      let res = (sel && sel.val) || [];
+                      return res;
+                    },
+                    field: "store",
+                    fullWidth: false,
+                    defaultValue: "asis",
+                    width: "200px",
+                  },
+                  {
+                    field: "storeOptions",
+                    itype: "$textarea",
+                    cols: 40,
+                    rowsMin: "1",
+                    defaultValue: "$",
+                    lineBreak: true,
+                    placeholder:
+                      "Please enter the store options!",
+                    hideItem: (props, Iob) => {
+                      const sel = Iob.getState(".info.plugins.$store");
+                      let res = sel && sel.val;
+                      res = Array.isArray(res) ? res : [];
+                      const method = props.inative["store"] || "asis";
+                      const f = res.find((i) => i.value == method);
+                      //                      console.log(res, method, f);
+                      return !f || (f && !f.hasOptions);
+                    },
+                  },
+                ],
+              },
+              {
                 headerName: "Enabled",
                 itype: "$checkbox",
                 field: "enabled",

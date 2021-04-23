@@ -139,7 +139,8 @@
 			"type": "state",
 			"common": {
 				"role": "value",
-				"name": "Plugin Test with functions",
+				"name": "info.plugins.$plugins.plugin$test",
+				"desc": "Plugin Test with functions",
 				"type": "string",
 				"read": true,
 				"write": true,
