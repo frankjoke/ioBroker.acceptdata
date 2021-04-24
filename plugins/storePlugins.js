@@ -1,3 +1,4 @@
+const { makeFunction } = require("../fjadapter");
 const A = require("../fjadapter");
 
 const plugin$store = {
@@ -22,8 +23,31 @@ const plugin$store = {
           desc: "store the value via a specific function",
           hasOptions: true,
           store: async (value, functions, item) => {
-            A.D("Run store-Function on %s with option %o and value %o", item.name, item.storeOptions, value);
-            return A.updateState(item.name, value);
+            A.D(
+              "Run store-Function on %s with option %o and value %o",
+              item.name,
+              item.storeOptions,
+              value
+            );
+            let fun = item.storeOptions;
+            if (typeof fun === "string") {
+              fun = A.makeFunction(fun, "$,A,F,item,store");
+              item.storeOptions = fun;
+            }
+            if (typeof fun === "function") {
+              value = await fun(
+                value,
+                A,
+                A.$F,
+                item,
+                async (name = "", val, common = {}) =>
+                  await A.updateState(item.name + (name ? "." + name : ""), val, {
+                    ack: true,
+                    common,
+                  })
+              );
+            } else return Promise.reject(A.W("Invalid function ion %s: %s", item.name, fun));
+            return value !== undefined ? A.updateState(item.name, value) : value;
           },
         }
       );

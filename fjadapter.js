@@ -1149,7 +1149,7 @@ class MyAdapter {
     options = Object.assign({}, poptions, options);
     const idl = id.startsWith(this.ain) ? id : this.ain + id;
 
-    console.log("updateState(%s(%s), %o, options:%o)", id, idl, value, options);
+//    console.log("updateState(%s(%s), %o, options:%o)", id, idl, value, options);
     if (!options.define && createdStates[idl]) return this.changeState(id, value, options);
     const st = {
       common: {

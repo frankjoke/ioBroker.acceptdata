@@ -66,7 +66,7 @@ A.addHooks({
             plugins.storeStore[value] = store;
             return { label, value, hasOptions, desc };
           }),
-          {common: {desc: "plugin$store functions list"}}
+          { common: { desc: "plugin$store functions list" } }
         );
         await A.AI.setStateAsync("info.plugins.$inputtypes", {
           val: plugins.inputtypes.map(({ label, value, convert, desc }) => {
@@ -212,13 +212,12 @@ async function runItem(item, arg) {
     if (item.iconv && typeof fun === "function") arg = await fun(arg, $pi.functions, item);
     fun = $pi.converterConverts[item.converter];
     if (typeof fun === "function") arg = await fun(arg, $pi.functions, item);
-    A.D("Finished item %s with %o", item.name, arg);
     fun = $pi.storeStore[item.store];
     if (typeof fun === "function") arg = await fun(arg, $pi.functions, item);
+    if (arg !== undefined) A.D("Finished item %s with %o", item.name, arg);
     return arg;
   } catch (e) {
-    const ret = A.W("Error when processing %s with Data %o: %o", item.name, arg, e);
-    return Promise.reject(ret);
+    Promise.reject(A.W("Error when processing %s with Data %o: %o", item.name, arg, e));
   }
 }
 
