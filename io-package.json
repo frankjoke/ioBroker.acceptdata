@@ -214,7 +214,7 @@
 			"type": "state",
 			"common": {
 				"role": "value",
-				"name": "inputtypes supported by adapter",
+				"name": "functions supported by adapter",
 				"type": "string",
 				"read": true,
 				"write": false,

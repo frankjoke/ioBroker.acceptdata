@@ -22,7 +22,7 @@ const plugin$methods = {
             try {
               res = A.getOptions(path, "url");
               res = await axios.request(res);
-              res=res.data;
+              res = res.data;
               A.S("executed web request on %s with result %s", path, res);
               return res;
             } catch (e) {
@@ -34,7 +34,7 @@ const plugin$methods = {
         {
           label: "exec",
           value: "exec",
-          desc: "execute a statement on command line and return the output.",
+          desc: "execute a statement on command line of host system and return the output.",
           hasSchedule: true,
           iconv: true,
           write: true,
@@ -61,7 +61,7 @@ const plugin$methods = {
           read: async (path, item) => {
             A.S("Run %s with path %s!", "file.read", path);
             try {
-              let {file, ...options} = A.getOptions(path, "file", { encoding: "utf8" });
+              let { file, ...options } = A.getOptions(path, "file", { encoding: "utf8" });
               res = await fs.readFile(file, options);
               A.D("executed %s with result %o", path, res);
               return res;

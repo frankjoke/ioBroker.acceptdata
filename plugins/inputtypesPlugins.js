@@ -1,5 +1,6 @@
 const A = require("../fjadapter");
 const xml2js = require("xml2js");
+const cheerio = require('cheerio');
 
 const reStripPrefix = /(?!xmlns)^.*:/;
 
@@ -56,9 +57,24 @@ const plugin$converters = {
           convert: async (value, functions, item) => {
             try {
               const tmp = JSON.stringify(value);
+              A.D("JSON converted in %s `%s` to %O", item.name, value, tmp);
               return tmp;
             } catch (e) {
               return Promise.reject(A.W("JSON stringify Error in JSON inputtype converter: %o", e));
+            }
+          },
+        },
+        {
+          label: "cheerio/jquery",
+          value: "cheerio",
+          desc: "Convert a web page to a cheerio $ object",
+          convert: async (value, functions, item) => {
+            try {
+              const tmp = cheerio.load(value);
+//              A.D("cheerio converted in %s `%s` to %O", item.name, value, tmp);
+              return tmp;
+            } catch (e) {
+              return Promise.reject(A.W("cheerio Error in load: %o", e));
             }
           },
         },
@@ -67,13 +83,14 @@ const plugin$converters = {
           value: "log",
           desc: "Just log the received data to see it's content",
           convert: async (value, functions, item) => {
-            A.I("InputConverter 'log' received for %s: %o", item.name, value);
+            A.I("InputConverter 'log' received for %s (type %s): %s", item.name, A.T(value), value);
             return value;
           },
         }
       );
       return handler;
     },
+
     /*     async plugins$run({ plugins, adapter }, handler) {
       A.Sf("plugin plugin$exec runs plugins$run with %s", A.O(plugins));
       return handler;

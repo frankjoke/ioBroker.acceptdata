@@ -1,6 +1,6 @@
 const A = require("../fjadapter");
 
-function toNum(v, n) {
+function toNum(v, n= -1) {
   const vn = Number(v);
   if (typeof n !== "number" || n < 0) return vn;
   return vn.toFixed(n);
@@ -8,6 +8,7 @@ function toNum(v, n) {
 
 const funs = {
   toNum,
+  toEuNum: (v, n) => toNum(v.replace(/\./g,"").replace(",","."), n),
   store: async (item, name = "", value, common = {}) => {
     const r = await A.updateState(item.name + (name ? "." + name : ""), value, { ack: true, common });
     return r;

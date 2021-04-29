@@ -15,7 +15,7 @@ A.addHooks({
     const installPlugins = require("./plugins/index.js");
     installPlugins();
     const noConv = {
-      label: "none",
+      label: "as is/auto",
       value: "none",
       convert: async (val, functions, options) => val,
     };
@@ -39,7 +39,7 @@ A.addHooks({
   },
 
   adapter$start: async ({ adapter }, handler) => {
-    A.setLogLevel("debug");
+    A.setLogLevel("debug"); // test only
     A.D(`adapter$start for ${adapter.namespace} version ${adapter.version}`);
     await A.plugins.call({
       name: "plugins$init",
@@ -83,22 +83,26 @@ A.addHooks({
         return handler;
       },
     });
+    if (adapter.config.maxCacheTime !== undefined)
+      A.I("Set cache maxAge to %ds", cache.setMaxAge(Number(adapter.config.maxCacheTime) * 1000)/1000);
     return handler;
   },
 
   adapter$run: async ({ adapter }, handler) => {
     A.D(`adapter$run for ${adapter.namespace}`);
     await A.wait(1000);
-    if (adapter.config.pathtable)
-      for (const i of adapter.config.pathtable) {
+    if (Array.isArray(adapter.config.pathtable))
+      await A.MA.mapSeries(adapter.config.pathtable, async (i) => {
+        //      for (const i of adapter.config.pathtable) {
         let { name, path, method, convert, enabled, schedule = "*:1" } = i;
         //        if (!name) name = path;
-        if (!enabled) continue;
+        if (!enabled) return false;
         const nitem = Object.assign({}, { config: i }, i);
         runItems.push(nitem);
         convert = convert || "$";
         const me = A.$plugins.methods.find((i) => i.value == method);
         nitem.hasSchedule = me && me.hasSchedule;
+        nitem.getItem = method + i.path;
         if (nitem.hasSchedule) {
           const reIsTime = /^([\d\-\*\,\/]+)\s*:\s*([\d\-\*\,\/]+)\s*(?::\s*([\d\-\*\,\/]+))?$/,
             reIsSchedule = /^[\d\-\/\*\,]+(\s+[\d\/\-\*,]+){4,5}$/;
@@ -142,7 +146,7 @@ A.addHooks({
           });
           A.D(`Installed ${name} path: '${path}' with ${method}-method`);
         }
-      }
+      });
     //    await A.cleanup("*");
     await A.plugins.call({
       name: "plugins$run",
@@ -151,18 +155,13 @@ A.addHooks({
         A.S("finished plugins$run created $plugins: %s", A.O(plugins));
         for (let sh in schedList) {
           const scheduler = schedule.scheduleJob(sh, () =>
-            schedList[sh].map(async (x) => {
-              const res = x.read ? await x.read(x.path, x) : null;
-              //              A.D("Schedule now %s with path '%s': %o", x.name, x.path, res);
-              runItem(x, res);
-            })
+            A.map(schedList[sh], (x) => startItem(x))
           );
           schedList[sh].scheduler = scheduler;
-          A.D(
-            `Will poll every '${sh}': ${schedList[sh].map((x) => x.name)}. %s`,
-            scheduler.nextInvocation()
-          );
+          //          await A.map(schedList[sh], startItem);
+          A.D(`Will poll every '${sh}': ${schedList[sh].map((x) => x.name)}.`);
         }
+        for (let sh in schedList) await A.MA.mapSeries(schedList[sh], startItem, 5);
 
         return handler;
       },
@@ -200,13 +199,34 @@ A.addHooks({
 });
 
 A.init(module, "acceptdata");
+A.setMaxDelay(60 * 20); // if last data store with same value was more than 20 min ago then store another old one before
 
 const runItems = [];
 const schedList = {};
+const cache = new A.CacheP({
+  maxage: 1000 * 60,
+  delay: 1,
+  fun: async (x) => {
+    let res = null;
+    //    A.D("Will call now read on %s", x);
+    try {
+      if (typeof x.read === "function") res = await x.read(x.path, x);
+      //      A.D("CacheP Will return %s", res);
+    } catch (e) {
+      //      A.W("Cache funtion error %o on %o", e, x);
+    }
+    return res;
+  },
+});
+
+async function startItem(x) {
+  //              A.D("Schedule now %s with path '%s': %o", x.name, x.path, res);
+  return await runItem(x, await cache.cacheItem(x));
+}
 
 async function runItem(item, arg) {
   const $pi = A.$plugins;
-  A.D("runItem %s: %s with data %s", item.name, item, typeof arg);
+  A.S("runItem %s: %s with data %s", item.name, item, typeof arg);
   try {
     let fun = $pi.inputConverts[item.iconv];
     if (item.iconv && typeof fun === "function") arg = await fun(arg, $pi.functions, item);

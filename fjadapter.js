@@ -7,6 +7,7 @@
  *      MIT License
  *
  *  V 1.0.1 July 2020
+ *  V 1.9.99 May 2020
  */
 "use strict";
 
@@ -14,51 +15,120 @@
 //@js-disable TS80006
 
 class CacheP {
-  constructor(fun, delay) {
-    // neue EintrÃ¤ge werden mit dieser Funktion kreiert
-    if (typeof fun != "function")
-      throw "CacheP needs an async function returning a Promise as first argument!";
-    this._cache = {};
-    this._fun = fun;
-    this._delay = delay || 0;
+  constructor(options = {}) {
+    if (typeof options === "function") options = { fun: options };
+    this._o = Object.assign(
+      {},
+      {
+        maxage: 0,
+        delay: 0,
+        fun: null,
+      },
+      options
+    );
+    this._c = {};
     return this;
   }
 
-  async cacheItem(item, prefereCache = true, fun) {
-    fun = fun || this._fun;
-    if (this._delay) await this.wait(this._delay);
-    if (prefereCache && this._cache[item] !== undefined) return this._cache[item];
+  async cacheItem(item, prefereCache = true, funa) {
+    let options = {
+      pref_c: prefereCache === true,
+    };
+    if (typeof funa === "function") options.fun = funa;
+    const check =
+      typeof item === "object" && item.getItem
+        ? typeof item.getItem === "function"
+          ? item.getItem(item)
+          : item.getItem
+        : item;
+
+    if (typeof prefereCache === "object") Object.assign(options, prefereCache);
+    options = Object.assign({}, this._o, options);
+    const { fun, delay, pref_c, maxage } = options;
+
+    if (delay) await MyAdapter.wait(this._delay);
+//    MyAdapter.D("CacheP %s, %o: %o, %o", check, this._o, item, options);
+
+    if (pref_c && this.isCached(check)) return this._c[check].value;
     // assert(MyAdapter.T(fun) === 'function', `checkItem needs a function to fill cache!`);
-    const res = await fun(item);
-    this._cache[item] = res;
-    return res;
+    let value;
+    try {
+//      MyAdapter.D("CacheP not cached: %s: %O", check, fun);
+      value = await fun(item);
+//      MyAdapter.D("CacheP not cached result: %s: %O", check, value);
+    } catch (e) {
+//      MyAdapter.W("CacheP Error in cache-function %O for %s: %o", fun, check, e);
+    }
+//    MyAdapter.D("CacheP %s returned %s", check, value);
+    if (value) this._c[check] = { time: Date.now(), value };
+    else this._c[check] = undefined;
+    return value;
   }
 
-  isCached(x) {
-    return this._cache[x] !== undefined;
+  isCached(item, maxage = 0) {
+    if (!maxage) maxage = this._o.maxage || 0;
+    const check =
+      typeof item === "object" && item.getItem
+        ? typeof item.getItem === "function"
+          ? item.getItem(item)
+          : item.getItem
+        : item;
+    const c = this._c[check];
+    if (!c) return null;
+//    MyAdapter.D("MaxAge %s, %d, %d", check, maxage, c.time+maxage, Date.now());
+    if (maxage > 0 && c.time + maxage < Date.now()) {
+      this._c[check] = undefined;
+      return null;
+    }
+    return c;
   }
+
+  setMaxAge(val) {
+    this._o.maxage = val;
+    return val;
+  }
+
+  setDelay(val) {
+    this._o.delay = val;
+    return val;
+  }
+
+  setFun(val) {
+    this._o.fun = val;
+    return val;
+  }
+
   clearCache() {
-    this._cache = {};
+    this._c = {};
   }
-  get cache() {
-    return this._cache;
-  }
-  cacheSync(item, prefereCache = true, fun) {
-    const cached = this.isCached(item);
-    if (cached && prefereCache) return this._cache[item];
-    fun = fun || this._fun;
-    if (typeof fun == "function")
-      try {
-        const res = fun(item);
-        if (res) {
-          this._cache[item] = res;
-          return res;
-        }
-      } finally {
-        // empty
-      }
 
-    return null;
+  get cache() {
+    return this._c;
+  }
+
+  cacheSync(item, prefereCache = true, funa) {
+    const options = {
+      pref_c: prefereCache === true,
+    };
+    if (typeof funa === "function") options.fun = funa;
+    const check =
+      typeof item === "object" && item.getItem
+        ? typeof item.getItem === "function"
+          ? item.getItem(item)
+          : item.getItem
+        : item;
+
+    if (typeof prefereCache === "object") Object.assign(options, prefereCache);
+    const { fun, delay, pref_c, maxage } = Object.assign({}, this._o, options);
+    if (pref_c && this.isCached(check)) return this._c[check].value;
+    let value;
+    try {
+      value = fun(item);
+      if (value) this._c[check] = { time: Date.now(), value };
+      else this._c[check] = undefined;
+    } finally {
+      return value;
+    }
   }
 }
 
@@ -118,6 +188,7 @@ let adapter,
   _objChange,
   _stateChange,
   stopping = false,
+  maxdelay = 0,
   // allStates = null,
   // stateChange = null,
   systemconf = null;
@@ -328,8 +399,16 @@ class MyAdapter {
     return masync.sleep;
   }
 
-  static get map() {
-    return masync.map;
+  static get asyncWrap() {
+    return masync.asyncWrap;
+  }
+
+  static map(iterable, iteratee, concurrency=0) {
+    return concurrency>0 ? masync.mapLimit(iterable, iteratee, concurrency) : masync.map(iterable, iteratee);
+  }
+
+  static get MA() {
+    return masync;
   }
 
   static setLogLevel(level = "info") {
@@ -594,6 +673,10 @@ class MyAdapter {
 
     MyAdapter.W("Promise failed @ %o error: %o", get().join("; "), x);
     return x;
+  }
+
+  static setMaxDelay(seconds = 0) {
+    maxdelay = seconds * 1000;
   }
 
   static nop(obj) {
@@ -1111,7 +1194,7 @@ class MyAdapter {
   static async changeState(id, value, options) {
     //        this.If('ChangeState got called on %s with ack:%s = %o', id,ack,value)
     options = options || {};
-    const { always = false, ts = Date.now(), ack = true } = options;
+    const { always = false, ts = Date.now(), ack = true, maxdelay = 0 } = options;
     if (value === undefined) {
       this.W("You tried to set state '%s' to 'undefined' with %j!", id, options);
       return null;
@@ -1125,9 +1208,15 @@ class MyAdapter {
       ? states[id]
       : (states[id] = await adapter.getStateAsync(id).catch(() => undefined));
     if (st && !always && this.equal(st.val, value) && st.ack === ack) return st;
+    if (st && maxdelay && ts - maxdelay > st.ts) {
+      this.D("resave state %s with %s and %s", st, stn);
+      await adapter
+        .setStateAsync(id, Object.assign({}, st, { ts: ts - Math.floor(maxdelay / 2) }))
+        .catch((e) => this.W("Error %j is setState for %s with %j", e, id, st));
+    }
     await adapter
       .setStateAsync(id, stn)
-      .catch((e) => (this.W("Error %j is setState for %s with %j", e, id, stn), stn));
+      .catch((e) => this.W("Error %j is setState for %s with %j", e, id, stn));
     if (states[id]) {
       st = states[id];
       st.val = value;
@@ -1144,12 +1233,12 @@ class MyAdapter {
       id = id.id;
       if (id.value !== undefined && value === undefined) value = id.value;
     }
-    const poptions = { always, define };
+    const poptions = { always, define, maxdelay };
     Object.assign(poptions, typeof ack == "object" ? ack : { ack });
     options = Object.assign({}, poptions, options);
     const idl = id.startsWith(this.ain) ? id : this.ain + id;
 
-//    console.log("updateState(%s(%s), %o, options:%o)", id, idl, value, options);
+    //    console.log("updateState(%s(%s), %o, options:%o)", id, idl, value, options);
     if (!options.define && createdStates[idl]) return this.changeState(id, value, options);
     const st = {
       common: {
@@ -1163,7 +1252,7 @@ class MyAdapter {
       _id: idl,
     };
     if (options.common) Object.assign(st.common, options.common);
-//    if (st.common.type === "object") st.common.type = "mixed";
+    //    if (st.common.type === "object") st.common.type = "mixed";
     if (options.native) st.native = Object.assign({}, options.native);
     if (st.common.write) st.common.role = st.common.role.replace(/^value/, "level");
     addSState(id, idl);

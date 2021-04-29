@@ -20,7 +20,9 @@
     "@iobroker/adapter-core": "^2.4.0",
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.6",
+    "csv-parse": "^4.15.4",
     "express": "^4.17.1",
+    "jsonframe-cheerio": "^3.0.1",
     "jsonpath-plus": "^5.0.7",
     "modern-async": "^1.0.2",
     "node-schedule": "^2.0.0",
@@ -46,7 +48,7 @@
     "cpy-cli": "^3.1.1",
     "gulp": "^4.0.2",
     "mocha": "^8.3.2",
-    "sass": "^1.32.10",
+    "sass": "^1.32.11",
     "sass-loader": "^11.0.1",
     "sinon": "^10.0.0",
     "sinon-chai": "^3.6.0"
