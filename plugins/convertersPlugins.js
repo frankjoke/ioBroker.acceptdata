@@ -165,7 +165,7 @@ const plugin$converters = {
           value: "log",
           desc: "kust log incoming object and return it",
           convert: async (value, functions, item) => {
-            A.I("%s converter (type %s) log: %O", item.name, A.T(value), value);
+            A.I("%s converter (type %s) log: %s", item.name, A.T(value), value);
             return value;
           },
         }

@@ -180,6 +180,7 @@ const objects = {},
   mstate = {};
 
 plugins.$plugins = {};
+plugins.$options = {};
 
 let adapter,
   aoptions,
@@ -433,6 +434,10 @@ class MyAdapter {
 
   static get $plugins() {
     return plugins.$plugins;
+  }
+
+  static get $options() {
+    return plugins.$options;
   }
 
   static get $F() {

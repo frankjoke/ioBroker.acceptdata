@@ -43,14 +43,16 @@ A.addHooks({
     A.D(`adapter$start for ${adapter.namespace} version ${adapter.version}`);
     await A.plugins.call({
       name: "plugins$init",
-      args: { plugins: A.$plugins, adapter },
-      handler: async ({ plugins, adapter }, handler) => {
+      args: { plugins: A.$plugins, options: A.$options, adapter },
+      handler: async ({ plugins, options, adapter }, handler) => {
         await A.AI.setStateAsync("info.plugins.$methods", {
-          val: plugins.methods.map(({ label, value, hasSchedule, read, write, iconv, desc }) => {
-            plugins.methodReads[value] = read;
-            plugins.methodWrites[value] = write;
-            return { label, value, hasSchedule, write: !!write, iconv, desc };
-          }),
+          val: (options.methods = plugins.methods.map(
+            ({ label, value, hasSchedule, read, write, iconv, desc }) => {
+              plugins.methodReads[value] = read;
+              plugins.methodWrites[value] = write;
+              return { label, value, hasSchedule, write: !!write, iconv, desc };
+            }
+          )),
           ack: true,
         });
         await A.AI.setStateAsync("info.plugins.$converters", {
@@ -62,29 +64,36 @@ A.addHooks({
         });
         await A.updateState(
           "info.plugins.$store",
-          plugins.store.map(({ label, value, hasOptions, store, desc }) => {
+          (options.store = plugins.store.map(({ label, value, hasOptions, store, desc }) => {
             plugins.storeStore[value] = store;
             return { label, value, hasOptions, desc };
-          }),
+          })),
           { common: { desc: "plugin$store functions list" } }
         );
         await A.AI.setStateAsync("info.plugins.$inputtypes", {
-          val: plugins.inputtypes.map(({ label, value, convert, desc }) => {
+          val: (options.inputtypes = plugins.inputtypes.map(({ label, value, convert, desc }) => {
             plugins.inputConverts[value] = convert;
             return { label, value, desc };
-          }),
+          })),
           ack: true,
         });
         await A.AI.setStateAsync("info.plugins.$functions", {
-          val: Object.keys(plugins.functions).join(", "),
+          val: (options.functions = Object.keys(plugins.functions).join(", ")),
           ack: true,
         });
         A.S("finished plugins$init created $plugins: %o", plugins);
         return handler;
       },
     });
+    await A.updateState("info.plugins.$options", A.$options, {
+      ack: true,
+      common: { desc: "plugin options collected", type: "object" },
+    });
     if (adapter.config.maxCacheTime !== undefined)
-      A.I("Set cache maxAge to %ds", cache.setMaxAge(Number(adapter.config.maxCacheTime) * 1000)/1000);
+      A.I(
+        "Set cache maxAge to %ds",
+        cache.setMaxAge(Number(adapter.config.maxCacheTime) * 1000) / 1000
+      );
     return handler;
   },
 

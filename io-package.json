@@ -135,6 +135,20 @@
 			"native": {}
 		},
 		{
+			"_id": "info.plugins.$options",
+			"type": "state",
+			"common": {
+				"role": "value",
+				"name": "info.plugins.$options",
+				"desc": "collected options for plugins",
+				"type": "object",
+				"read": true,
+				"write": false,
+				"def": {}
+			},
+			"native": {}
+		},
+		{
 			"_id": "info.plugins.$plugins.plugin$test",
 			"type": "state",
 			"common": {

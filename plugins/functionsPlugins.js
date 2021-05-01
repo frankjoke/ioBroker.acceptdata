@@ -23,7 +23,7 @@ const funs = {
 const plugin$functions = {
   name: "plugin$functions",
   hooks: {
-    async plugins$init({ plugins, adapter }, handler) {
+    async plugins$init({ plugins, options, adapter }, handler) {
       A.S("plugin plugin$functions runs plugins$init with %o", plugins);
       Object.assign(plugins.functions, funs);
       return handler;
