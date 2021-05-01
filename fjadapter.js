@@ -407,6 +407,10 @@ class MyAdapter {
     return concurrency>0 ? masync.mapLimit(iterable, iteratee, concurrency) : masync.map(iterable, iteratee);
   }
 
+  static mapSeries(iterable, iteratee) {
+    return masync.mapSeries(iterable, iteratee);
+  }
+
   static get MA() {
     return masync;
   }
@@ -1260,7 +1264,7 @@ class MyAdapter {
     await adapter
       .extendObjectAsync(idl, st, null)
       .catch((e) => (this.W("error %j extend object %s", e, idl), null));
-    this.D("created State %s", idl); // REM
+    this.D("created State %s with %s", idl, value); // REM
     if (!objects[idl]) objects[idl] = st;
     return this.changeState(idl, value, options);
   }

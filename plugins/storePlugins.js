@@ -1,4 +1,3 @@
-const { makeFunction } = require("../fjadapter");
 const A = require("../fjadapter");
 
 const plugin$store = {
@@ -101,9 +100,23 @@ const plugin$store = {
             async function idc(pre = "", mid = "", post = "", val = value, typ) {
               let [name, type, fun, arg] = getName(typ);
               name = item.name + pre + mid + name + post;
-              //              A.D("idc: %s(%o)(%O):%s", name, type, fun, val);
+//                            A.D("idc: %s(%o)(%O):%s", name, type, fun, val);
               if (fun) val = await fun(val, arg);
               return A.updateState(name, val, type);
+            }
+
+            async function mapStore(how, basename, value) {
+              return await A.mapSeries(Object.entries(how), async ([key, entry]) => {
+//                A.D("MapStore %s: %s = %s, %o", item.name, basename, key, entry);
+                if (key === "$_name") return null;
+                if (typeof entry === "string") {
+                  entry = entry.trim();
+                  if (entry) return await idc("", basename, "", value[key], entry.startsWith("|") ? key+entry : entry);
+                } else if (typeof entry === "object") {
+                  return await mapStore(entry, basename + (entry.$_name || key) + ".", value[key]);
+                }
+                return A.updateState(item.name + basename + key, value);
+              });
             }
 
             A.S(
@@ -113,55 +126,83 @@ const plugin$store = {
               value
             );
             let str = item.storeOptions;
-            //            let str = ".[ConsumableStation+ConsumableLabelCode+ConsumableSelectibilityNumber/ConsumablePercentageLevelRemaining]";
-            str = str && str.trim();
-            if (!str) return val !== undefined ? A.updateState(item.name, value) : undefined;
-            const reIsMultiName = /^([^\s,\[]*)\s*(\[(\(\s*-?\d+\s*(?:,\s*-?\d+\s*)?\))?\s*(\S+\/\S*|[^\s,\]]+(\s*\,\s*[^\s,\]]+)+|\*)\s*\]\s*)?(\S*)$/;
-            const reIsObjName = /^\s*(\S+?)\s*\/\s*(\S*)\s*$/;
-
-            const mnm = str.match(reIsMultiName);
-            if (!mnm) return A.W("Invalid field option in %s: '%s'", item.name, str);
-            let [, pre, , slice, mid, , post] = A.trim(mnm);
-            //            A.D("store match was pre:'%s', mid:'%o', post:'%s', slice:%s", pre, mid, post, slice);
-            slice =
-              slice && slice !== "undefined" && slice.match(/\S+/)
-                ? slice
-                    .slice(1, -1)
-                    .split(",")
-                    .map((i) => Number(i))
-                : null;
-
-            if (Array.isArray(value) && Array.isArray(slice)) value = value.slice(...slice);
-
-            if (mid != "*") {
-              const on = mid.match(reIsObjName);
-              const name = on && on[1] !== "undefined" ? A.trim(on[1].split("+")) : on[1];
-              if (on) mid = { name, value: on[2] && on[2] != "*" ? on[2] : null };
-              else mid = A.trim(mid.split(","));
-              A.MA.mapSeries(value, async (i) => {
-                const name = mid.name.map((n) => i[n]).join("_");
-//                A.D("!=* %s: %o = %s %s", item.name, mid, i, post);
-                if (!mid.value)
-                  return A.MA.mapSeries(Object.entries(i), async ([key, val]) =>
-                    mid.name.indexOf(key) < 0 ? idc(pre, "", "." + key, val, post) : null
+            if (typeof str === "string") {
+              //            let str = ".[ConsumableStation+ConsumableLabelCode+ConsumableSelectibilityNumber/ConsumablePercentageLevelRemaining]";
+              str = str && str.trim();
+              if (!str) return val !== undefined ? A.updateState(item.name, value) : undefined;
+              else if (str.startsWith("return ") || (str.startsWith("{") && str.endsWith("}"))) {
+                A.D("store %s convert %s to object", item.name, str);
+                try {
+                  let fun = A.MA.asyncWrap(A.makeFunction(str, "A,F,$"));
+                  str = await fun(A, A.$F, value);
+                } catch (e) {
+                  return A.W(
+                    "store error %o in %s converting %s to an object!",
+                    e,
+                    item.name,
+                    item.storeOptions
                   );
-                const [nam, ...rest] = mid.value.split("|");
-                rest.unshift("");
-//                A.D("!=* %s: %s = %s %s", nam, name, i[nam], rest);
-                return idc(pre, name, "", i[nam], rest.join("|"));
-              });
-            } else if (Array.isArray(value)) {
-              return A.MA.mapSeries(value, (i, index) => idc("", "", "", value[index], i));
-            } else return idc(pre, "", "", value, post);
-            /* 
-            A.D(
-              "Store field will be pre:'%s', mid:'%o', post:'%s', slice:%s",
-              pre,
-              mid,
-              post,
-              slice
-            );
- */
+                }
+                if (typeof str === "object") item.storeOptions = str;
+              } else {
+                const reIsMultiName = /^([^\s,\[]*)\s*(\[(\(\s*-?\d+\s*(?:,\s*-?\d+\s*)?\))?\s*(\S+\/\S*|[^\s,\]]+(\s*\,\s*[^\s,\]]+)+|\*)\s*\]\s*)?(\S*)$/;
+                const reIsObjName = /^\s*(\S+?)\s*\/\s*(\S*)\s*$/;
+
+                const mnm = str.match(reIsMultiName);
+                if (mnm) {
+                  let [, pre, , slice, mid, , post] = A.trim(mnm);
+                  A.D(
+                    "store match was pre:'%s', mid:'%o', post:'%s', slice:%s",
+                    pre,
+                    mid,
+                    post,
+                    slice
+                  );
+                  slice =
+                    slice && slice !== "undefined" && slice.match(/\S+/)
+                      ? slice
+                          .slice(1, -1)
+                          .split(",")
+                          .map((i) => Number(i))
+                      : null;
+
+                  if (Array.isArray(value) && Array.isArray(slice)) value = value.slice(...slice);
+
+                  if (mid != "*") {
+                    const on = mid.match(reIsObjName);
+                    const name = on && on[1] !== "undefined" ? A.trim(on[1].split("+")) : on[1];
+                    if (on) mid = { name, value: on[2] && on[2] != "*" ? on[2] : null };
+                    else mid = A.trim(mid.split(","));
+                    await A.mapSeries(value, async (i) => {
+                      const name = mid.name.map((n) => i[n]).join("_");
+                      //                A.D("!=* %s: %o = %s %s", item.name, mid, i, post);
+                      if (!mid.value)
+                        return A.mapSeries(Object.entries(i), async ([key, val]) =>
+                          mid.name.indexOf(key) < 0 ? idc(pre, "", "." + key, val, post) : null
+                        );
+                      const [nam, ...rest] = mid.value.split("|");
+                      rest.unshift("");
+// A.D("!=* %s: %s = %s %s", nam, name, i[nam], rest);
+                      return idc(pre, name, "", i[nam], post || rest.join("|"));
+                    });
+                    return undefined;
+                  } else if (Array.isArray(value)) {
+                    return A.mapSeries(value, (i, index) => idc("", "", "", value[index], i));
+                  } else return idc(pre, "", "", value, post);
+                }
+              }
+            }
+            if (typeof str != "object")
+              return A.W(
+                "Invalid field option in %s (type %s): '%s' coming from %s",
+                item.name,
+                typeof str,
+                str,
+                item.config.storeOptions
+              );
+
+            await mapStore(str, ".", value);
+            return null;
           },
         }
       );

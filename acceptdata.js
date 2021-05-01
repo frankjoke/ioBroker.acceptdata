@@ -92,7 +92,7 @@ A.addHooks({
     A.D(`adapter$run for ${adapter.namespace}`);
     await A.wait(1000);
     if (Array.isArray(adapter.config.pathtable))
-      await A.MA.mapSeries(adapter.config.pathtable, async (i) => {
+      await A.mapSeries(adapter.config.pathtable, async (i) => {
         //      for (const i of adapter.config.pathtable) {
         let { name, path, method, convert, enabled, schedule = "*:1" } = i;
         //        if (!name) name = path;
@@ -161,7 +161,7 @@ A.addHooks({
           //          await A.map(schedList[sh], startItem);
           A.D(`Will poll every '${sh}': ${schedList[sh].map((x) => x.name)}.`);
         }
-        for (let sh in schedList) await A.MA.mapSeries(schedList[sh], startItem, 5);
+        for (let sh in schedList) await A.mapSeries(schedList[sh], startItem, 5);
 
         return handler;
       },

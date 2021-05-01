@@ -15,6 +15,7 @@
             ],
 //            "args": ["--inspect=localhost:9229","--force","--logs","--nolazy"],
 //            "autoAttachChildProcesses": true,
+            "sourceMaps": false,
             "cwd": "c:\\iobroker\\Test2",
 //            "program": "c:\\iobroker\\Test2\\node_modules\\iobroker.acceptdata\\acceptdata.js"
         }
