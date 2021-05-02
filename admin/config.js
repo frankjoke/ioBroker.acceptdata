@@ -67,7 +67,7 @@ function config() {
               "is supported.",
               "!<br>",
               "By entering the below URL in your browser (changing iobroker-server to your server name or ip) you can test the 'Test' entry:",
-              "!<br><a target='_blank' rel='noopener noreferrer' href='http://MyHost:MyPort/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88'>http://MyHost:MyPort/Test?what=ok&length_$m=12&temp_$%C2%B0F=13&speed_$mp/h=88</a>",
+              "!<br><a target='_blank' rel='noopener noreferrer' href='http://MyHost:MyPort/Test?what=ok&length=12&temp=13&speed=88'>http://MyHost:MyPort/Test?what=ok&length=12&temp=13&speed=88</a>",
             ],
             style: {
               width: "98%",
@@ -146,9 +146,8 @@ function config() {
                     itype: "$select",
                     tooltip: "please select method",
                     iselect: ($, props, Iob) => {
-                      const sel = Iob.getState(".info.plugins.$methods");
-                      let res = (sel && sel.val) || [];
-                      return res;
+                      const sel = Iob.getStateValue(".info.$options");
+                      return (sel && sel.methods) || [];
                     },
                     field: "method",
                     defaultValue: "none",
@@ -159,14 +158,12 @@ function config() {
                     itype: "$select",
                     tooltip: "please select method",
                     iselect: ($, props, Iob) => {
-                      const sel = Iob.getState(".info.plugins.$inputtypes");
-                      let res = (sel && sel.val) || [];
-//                      console.log(sel, res);
-                      return res;
+                      const sel = Iob.getStateValue(".info.$options");
+                      return (sel && sel.inputtypes) || [];
                     },
                     hideItem: (props, Iob) => {
-                      const sel = Iob.getState(".info.plugins.$methods");
-                      let res = sel && sel.val;
+                      const sel = Iob.getStateValue(".info.$options");
+                      let res = sel && sel.methods;
                       res = Array.isArray(res) ? res : [];
                       const method = props.inative["method"];
                       const f = res.find((i) => i.value == method);
@@ -195,8 +192,8 @@ function config() {
                     rowsMin: "1",
                     lineBreak: true,
                     hideItem: (props, Iob) => {
-                      const sel = Iob.getState(".info.plugins.$methods");
-                      let res = sel && sel.val;
+                      const sel = Iob.getStateValue(".info.$options");
+                      let res = sel && sel.methods;
                       res = Array.isArray(res) ? res : [];
                       const method = props.inative["method"];
                       const f = res.find((i) => i.value == method);
@@ -212,8 +209,8 @@ function config() {
                 field: "schedule",
                 align: "left",
                 disabled: (props, Iob) => {
-                  const sel = Iob.getState(".info.plugins.$methods");
-                  let res = sel && sel.val;
+                  const sel = Iob.getStateValue(".info.$options");
+                  let res = sel && sel.methods;
                   res = Array.isArray(res) ? res : [];
               const method = props.inative["method"];
                   const f = res.find((i) => i.value == method);
@@ -238,9 +235,8 @@ function config() {
                     itype: "$select",
                     tooltip: "please select a converter",
                     iselect: ($, props, Iob) => {
-                      const sel = Iob.getState(".info.plugins.$converters");
-                      let res = (sel && sel.val) || [];
-                      return res;
+                      const sel = Iob.getStateValue(".info.$options");
+                      return (sel && sel.converters) || [];
                     },
                     field: "converter",
                     fullWidth: false,
@@ -257,8 +253,8 @@ function config() {
                     placeholder:
                       "Please enter the converter formula or options, '$' is the simplest!",
                     hideItem: (props, Iob) => {
-                      const sel = Iob.getState(".info.plugins.$converters");
-                      let res = sel && sel.val;
+                      const sel = Iob.getStateValue(".info.$options");
+                      let res = sel && sel.converters;
                       res = Array.isArray(res) ? res : [];
                       const method = props.inative["converter"] || "none";
                       const f = res.find((i) => i.value == method);
@@ -280,9 +276,8 @@ function config() {
                     itype: "$select",
                     tooltip: "please select a converter",
                     iselect: ($, props, Iob) => {
-                      const sel = Iob.getState(".info.plugins.$store");
-                      let res = (sel && sel.val) || [];
-                      return res;
+                      const sel = Iob.getStateValue(".info.$options");
+                      return (sel && sel.store) || [];
                     },
                     field: "store",
                     fullWidth: false,
@@ -299,8 +294,8 @@ function config() {
                     placeholder:
                       "Please enter the store options!",
                     hideItem: (props, Iob) => {
-                      const sel = Iob.getState(".info.plugins.$store");
-                      let res = sel && sel.val;
+                      const sel = Iob.getStateValue(".info.$options");
+                      let res = sel && sel.store;
                       res = Array.isArray(res) ? res : [];
                       const method = props.inative["store"] || "asis";
                       const f = res.find((i) => i.value == method);

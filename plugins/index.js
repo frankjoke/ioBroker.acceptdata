@@ -7,7 +7,7 @@ function installPlugins(options = {}) {
   A.plugins.register(require("./functionsPlugins.js"));
   A.plugins.register(require("./inputtypesPlugins.js"));
   A.plugins.register(require("./storePlugins.js"));
-  A.AI.getStatesAsync("info.plugins.$plugins.*").then((r) =>
+  A.AI.getStatesAsync("info.$plugins.*").then((r) =>
     Object.entries(r).map(([id, state]) => {
       try {
         let fun = state.val.trim();

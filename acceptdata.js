@@ -45,47 +45,32 @@ A.addHooks({
       name: "plugins$init",
       args: { plugins: A.$plugins, options: A.$options, adapter },
       handler: async ({ plugins, options, adapter }, handler) => {
-        await A.AI.setStateAsync("info.plugins.$methods", {
-          val: (options.methods = plugins.methods.map(
-            ({ label, value, hasSchedule, read, write, iconv, desc }) => {
-              plugins.methodReads[value] = read;
-              plugins.methodWrites[value] = write;
-              return { label, value, hasSchedule, write: !!write, iconv, desc };
-            }
-          )),
-          ack: true,
-        });
-        await A.AI.setStateAsync("info.plugins.$converters", {
-          val: plugins.converters.map(({ label, value, options, convert, desc }) => {
-            plugins.converterConverts[value] = convert;
-            return { label, value, options, desc };
-          }),
-          ack: true,
-        });
-        await A.updateState(
-          "info.plugins.$store",
-          (options.store = plugins.store.map(({ label, value, hasOptions, store, desc }) => {
-            plugins.storeStore[value] = store;
-            return { label, value, hasOptions, desc };
-          })),
-          { common: { desc: "plugin$store functions list" } }
+        options.methods = plugins.methods.map(
+          ({ label, value, hasSchedule, read, write, iconv, desc }) => {
+            plugins.methodReads[value] = read;
+            plugins.methodWrites[value] = write;
+            return { label, value, hasSchedule, write: !!write, iconv, desc };
+          }
         );
-        await A.AI.setStateAsync("info.plugins.$inputtypes", {
-          val: (options.inputtypes = plugins.inputtypes.map(({ label, value, convert, desc }) => {
-            plugins.inputConverts[value] = convert;
-            return { label, value, desc };
-          })),
-          ack: true,
+        options.converters = plugins.converters.map(({ label, value, options, convert, desc }) => {
+          plugins.converterConverts[value] = convert;
+          return { label, value, options, desc };
         });
-        await A.AI.setStateAsync("info.plugins.$functions", {
-          val: (options.functions = Object.keys(plugins.functions).join(", ")),
-          ack: true,
+        options.store = plugins.store.map(({ label, value, hasOptions, store, desc }) => {
+          plugins.storeStore[value] = store;
+          return { label, value, hasOptions, desc };
         });
+        options.inputtypes = plugins.inputtypes.map(({ label, value, convert, desc }) => {
+          plugins.inputConverts[value] = convert;
+          return { label, value, desc };
+        });
+        options.functions = Object.keys(plugins.functions).join(", ");
+
         A.S("finished plugins$init created $plugins: %o", plugins);
         return handler;
       },
     });
-    await A.updateState("info.plugins.$options", A.$options, {
+    await A.updateState("info.$options", A.$options, {
       ack: true,
       common: { desc: "plugin options collected", type: "object" },
     });

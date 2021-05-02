@@ -85,7 +85,7 @@ const plugin$store = {
                     try {
                       return A.$F[fun](v, a);
                     } catch (e) {
-                      A.W("store fields has invalid function in %s: %s", item.name, e);
+                      A.W("store fields has invalid function %s in %s: %s", fun, item.name, e);
                       return (v) => v;
                     }
                   };

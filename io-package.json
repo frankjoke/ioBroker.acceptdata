@@ -117,52 +117,6 @@
 			"native": {}
 		},
 		{
-			"_id": "info.plugins",
-			"type": "channel",
-			"common": {
-				"name": "plugins",
-				"desc": "Folder to add plugins"
-			},
-			"native": {}
-		},
-		{
-			"_id": "info.plugins.$plugins",
-			"type": "channel",
-			"common": {
-				"name": "$plugins",
-				"desc": "Folder to add states with plugins"
-			},
-			"native": {}
-		},
-		{
-			"_id": "info.plugins.$options",
-			"type": "state",
-			"common": {
-				"role": "value",
-				"name": "info.plugins.$options",
-				"desc": "collected options for plugins",
-				"type": "object",
-				"read": true,
-				"write": false,
-				"def": {}
-			},
-			"native": {}
-		},
-		{
-			"_id": "info.plugins.$plugins.plugin$test",
-			"type": "state",
-			"common": {
-				"role": "value",
-				"name": "info.plugins.$plugins.plugin$test",
-				"desc": "Plugin Test with functions",
-				"type": "string",
-				"read": true,
-				"write": true,
-				"def": "{xxx:'Ich bin ein Testplugin !'}"
-			},
-			"native": {}
-		},
-		{
 			"_id": "info.connection",
 			"type": "state",
 			"common": {
@@ -176,63 +130,39 @@
 			"native": {}
 		},
 		{
-			"_id": "info.plugins.$methods",
-			"type": "state",
+			"_id": "info.$plugins",
+			"type": "channel",
 			"common": {
-				"role": "value",
-				"name": "Methods supported by adapter",
-				"type": "object",
-				"read": true,
-				"write": false,
-				"def": {
-					"label": "none",
-					"value": ""
-				}
+				"name": "$plugins",
+				"desc": "Folder to add states with plugins"
 			},
 			"native": {}
 		},
 		{
-			"_id": "info.plugins.$converters",
+			"_id": "info.$options",
 			"type": "state",
 			"common": {
 				"role": "value",
-				"name": "Converters supported by adapter",
+				"name": "$options",
+				"desc": "collected options for plugins",
 				"type": "object",
 				"read": true,
 				"write": false,
-				"def": {
-					"label": "none",
-					"value": "none"
-				}
+				"def": {}
 			},
 			"native": {}
 		},
 		{
-			"_id": "info.plugins.$inputtypes",
+			"_id": "info.$plugins.plugin$test",
 			"type": "state",
 			"common": {
 				"role": "value",
-				"name": "inputtypes supported by adapter",
-				"type": "object",
-				"read": true,
-				"write": false,
-				"def": {
-					"label": "none",
-					"value": "none"
-				}
-			},
-			"native": {}
-		},
-		{
-			"_id": "info.plugins.$functions",
-			"type": "state",
-			"common": {
-				"role": "value",
-				"name": "functions supported by adapter",
+				"name": "info.$plugins.plugin$test",
+				"desc": "Plugin Test with functions",
 				"type": "string",
 				"read": true,
 				"write": false,
-				"def": ""
+				"def": "{xxx:'Ich bin ein Testplugin !'}"
 			},
 			"native": {}
 		}
