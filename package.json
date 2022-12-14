@@ -21,7 +21,7 @@
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.6",
     "csv-parse": "^4.15.4",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "jsonframe-cheerio": "^3.0.1",
     "jsonpath-plus": "^5.0.7",
     "modern-async": "^1.0.2",
